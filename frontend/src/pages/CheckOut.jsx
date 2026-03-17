@@ -17,6 +17,7 @@ import { setAddress, setLocation } from "../redux/mapSlice";
 import { useState } from "react";
 import { useEffect } from "react";
 import { serverUrl } from "../App";
+import { addMyOrder } from "../redux/userSlice";
 
 
 
@@ -118,7 +119,7 @@ function CheckOut() {
       },{ withCredentials: true }
     );
 
-    console.log("Order placed successfully:", result.data);
+    dispatch(addMyOrder(result.data)); // Update Redux store with the new order
 
     // alert("Order placed successfully ✅");
 

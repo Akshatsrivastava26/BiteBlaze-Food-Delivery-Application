@@ -57,6 +57,10 @@ cartItems.forEach((item) => {
       totalAmount,
       shopOrders,
     });
+     
+    await newOrder.populate("shopOrders.shopOrderItems.item","name image price");
+    await newOrder.populate("shopOrders.shop","name");
+     
 
     return res.status(201).json({ message: "Order placed successfully", order: newOrder });
   } catch (error) {
