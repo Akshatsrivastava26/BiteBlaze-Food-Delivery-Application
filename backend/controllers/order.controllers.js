@@ -107,3 +107,24 @@ export const getMyOrders= async (req,res) => {
   }
 }
 
+// controller for owner to update the status of order
+export const updateOrderStatus= async (req,res) => {
+  try {
+    const {orderId, shopId}=req.params;
+    const {status}=req.body;
+    const order= await Order.findById(orderId);
+
+    const shopOrder=await order.shopOrders.find(o=>o.shop==shopId)
+    if(!shopOrder){
+      return res.status(400).json({message:"Shop order not found"});
+    }
+    shopOrder.status=status;
+    await shopOrder.save();
+    await order.save();
+    // await shopOrder.populate("shopOrderItems.item","name image price");
+    return res.status(200).json(shopOrder.status);
+  } catch (error) {
+    return res.status(500).json({message:`order status error ${error.message}`});
+    
+  }
+}

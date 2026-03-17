@@ -1,7 +1,18 @@
+import axios from 'axios';
 import React from 'react'
 import { MdPhone } from "react-icons/md";
+import { serverUrl } from '../App';
 
 function OwnerOrderCard({data}) {
+  const handleUpdateStatus=async(orderId, shopId, status)=>{
+    try {
+      const result=await axios.post(`${serverUrl}/api/order/update-status/${orderId}/${shopId}`,{status},{withCredentials:true});
+      console.log(result.data);
+      // update the status in UI
+    } catch (error) {
+      console.error("Error updating order status:", error);
+    }
+  }
   return (
     <div className='bg-white rounded-lg shadow p-4 space-y-4'>
       {/* information about user */}
@@ -28,7 +39,8 @@ function OwnerOrderCard({data}) {
         {/* status update option for owner */}
       <div className='flex justify-between items-center mt-auto pt-3 border-t border-gray-100'>
         <span className='text-sm'>status:<span className='font-semibold capitalize text-[#ff4d2d]'>{data.shopOrders.status}</span></span>
-        <select value={data.shopOrders.status} className='rouned-md border px-3 py-1 text-sm focus:outline-none focus:ring-2 border-[#ff4d2d] text-[#ff4d2d]'>
+        <select className='rouned-md border px-3 py-1 text-sm focus:outline-none focus:ring-2 border-[#ff4d2d] text-[#ff4d2d]' onChange={(e)=>handleUpdateStatus(data._id,data.shopOrders.shop._id,e.target.value)}>
+            <option value="">Select Status</option>
             <option value="pending">Pending</option>
             <option value="preparing">Preparing</option>
             <option value="out for delivery">Out for Delivery</option>
