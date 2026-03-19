@@ -170,16 +170,17 @@ export const updateOrderStatus= async (req,res) => {
 
     await shopOrder.save();
     await order.save();
+    const updatedShopOrder=order.shopOrders.find(o=>o.shop==shopId);
     await order.populate("shopOrders.shop","name");
     await order.populate("shopOrders.assignedDeliveryBoy", "fullName email mobile");
 
-    const updatedShopOrder=order.shopOrders.find(o=>o.shop==shopId);
+    
     // await shopOrder.populate("shopOrderItems.item","name image price");
     return res.status(200).json({
       shopOrder:updatedShopOrder,
-      assignedDeliveryBoy:updatedShopOrder.assignedDeliveryBoy,
+      assignedDeliveryBoy:updatedShopOrder?.assignedDeliveryBoy,
       availableBoys:deliveryBoysPayload,
-      assignment:updatedShopOrder.assignment._id,
+      assignment:updatedShopOrder?.assignment._id,
     });
   } catch (error) {
     return res.status(500).json({message:`order status error ${error.message}`});
