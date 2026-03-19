@@ -212,3 +212,36 @@ export const getDeliveryBoyAssignment=async (req,res) => {
     return res.status(500).json({message:`get delivery boy assignment error ${error.message}`});
   }
 }
+
+// controller for delivery boy to accept an order assignment
+const acceptOrder=async (req,res) => {
+  try {
+    const {assignmentId}=req.params;
+    const assignment= await DeliveryAssignment.findById(assignmentId);
+    if(!assignment){
+      return res.status(400).json({message:"Assignment not found"});
+    }
+    if(assignment.status !=="broadcasted"){
+      return res.status(400).json({message:"Assignment is expired"});
+    }
+
+    const alreadyAssigned = await DeliveryAssignment.findOne({
+      assignedTo:req.userId,
+      status:{$nin:["broascasted","completed"]},
+    })
+    if(alreadyAssigned){
+      return res.status(400).json({message:"You have already accepted another order"});
+    }
+    assignment.assignedTo=req.userId;
+    assignment.status="assigned";
+    assignment.acceptedAt=new Date();
+    await assignment.save();
+
+    const order=await Order.findById(assignment.order)
+    if(!order){
+      return res.status(400).json({message:"Order not found"});
+    }
+  } catch (error) {
+    return res.status(500).json({message:`accept order error ${error.message}`});
+  }
+}
