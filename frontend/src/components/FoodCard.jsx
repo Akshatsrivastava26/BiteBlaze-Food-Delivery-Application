@@ -51,7 +51,7 @@ function FoodCard({ data }) {
       {/* Image Section */}
       <div className="relative w-full h-[170px] flex justify-center items-center bg-white">
         <div className="absolute top-3 right-3 bg-white rounded-full p-1 shadow">
-          {data.foodType == "veg" ? (
+          {data.foodType == "Veg" ? (
             <FaLeaf className="text-green-600 text-lg" />
           ) : (
             <FaDrumstickBite className="text-red-600 text-lg" />
