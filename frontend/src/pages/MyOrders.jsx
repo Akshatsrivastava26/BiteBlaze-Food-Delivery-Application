@@ -21,11 +21,11 @@ function MyOrders() {
         </div>
         {/* Orders will be shown here */}
         <div className="space-y-6">
-          {myOrders?.map((order, index) =>
+          {myOrders?.map((order) =>
             userRole == "user" ? (
-              <UserOrderCard data={order} key={index} />
+              <UserOrderCard data={order} key={order._id} />
             ) : userRole == "owner" ? (
-              <OwnerOrderCard data={order} key={index} />
+              <OwnerOrderCard data={order} key={order._id} />
             ) : null,
           )}
         </div>

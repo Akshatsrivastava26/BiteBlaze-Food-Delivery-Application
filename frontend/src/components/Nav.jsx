@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { setMyShopData } from "../redux/ownerSlice";
 
 function Nav() {
-  const { userData, currentCity, cartItems } =
+  const { userData, currentCity, cartItems, myOrders } =
     useSelector((state) => state.user) || {};
   const user = userData?.user;
   const { myShopData } = useSelector((state) => state.owner) || {};
@@ -126,7 +126,7 @@ function Nav() {
               <TbReceipt2 size={20} />
               <span>My Orders</span>
               <span className="absolute -right-2 -top-2 text-xs font-bold text-white bg-[#ff4d2d] rounded-full px-1.5 py-px">
-                0
+                {myOrders?.length || 0}
               </span>
             </div>
             <div
@@ -135,7 +135,7 @@ function Nav() {
             >
               <TbReceipt2 size={20} />
               <span className="absolute -right-2 -top-2 text-xs font-bold text-white bg-[#ff4d2d] rounded-full px-1.5 py-px">
-                0
+                {myOrders?.length || 0}
               </span>
             </div>
           </>

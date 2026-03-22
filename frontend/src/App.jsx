@@ -15,7 +15,6 @@ import OrderPlaced from "./pages/OrderPlaced";
 import MyOrders from "./pages/MyOrders";
 import Nav from "./components/Nav";
 
-
 import useGetCurrentUser from "./hooks/useGetCurrentUser";
 import useGetCity from "./hooks/useGetCity";
 import useGetMyShop from "./hooks/useGetMyShop";
@@ -24,30 +23,28 @@ import useGetItemsByCity from "./hooks/useGetItemsByCity";
 import useGetMyOrders from "./hooks/useGetMyOrders";
 import useUpdateLocation from "./hooks/useUpdateLocation";
 
-
 export const serverUrl = import.meta.env.VITE_BACKEND_URL;
 
 function App() {
   const { userData } = useSelector((state) => state.user);
-  useGetCurrentUser();
+  const loading = useGetCurrentUser();
   useUpdateLocation();
   useGetCity();
   useGetMyShop();
   useGetShopByCity();
   useGetItemsByCity();
   useGetMyOrders();
-  
 
-  // if (loading) {
-  //   return (
-  //     <div className="w-screen min-h-screen flex justify-center items-center bg-[#fff9f6]">
-  //       <div className="flex flex-col items-center gap-3">
-  //         <h1 className="text-3xl font-bold text-[#ff4d2d]">Vingo</h1>
-  //         <p className="text-gray-600">Loading...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  if (loading) {
+    return (
+      <div className="w-screen min-h-screen flex justify-center items-center bg-[#fff9f6]">
+        <div className="flex flex-col items-center gap-3">
+          <h1 className="text-3xl font-bold text-[#ff4d2d]">Vingo</h1>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Routes>
@@ -95,10 +92,7 @@ function App() {
         path="/my-orders"
         element={userData ? <MyOrders /> : <Navigate to="/signin" />}
       />
-
     </Routes>
-
-
   );
 }
 export default App;
