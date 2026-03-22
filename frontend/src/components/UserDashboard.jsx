@@ -10,9 +10,7 @@ import FoodCard from "./FoodCard";
 
 
 function UserDashboard() {
-  const { currentCity, shopInMyCity, itemsInMyCity } = useSelector(
-    (state) => state.user,
-  );
+ 
   const { currentCity, shopInMyCity, itemsInMyCity } = useSelector(
     (state) => state.user,
   );

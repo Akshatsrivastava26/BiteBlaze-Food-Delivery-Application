@@ -24,8 +24,6 @@ function useGetItemsByCity() {
     };
     fetchItems();
   }, [currentCity, dispatch]);
-  const dispatch = useDispatch();
-  const { currentCity } = useSelector((state) => state.user);
 
   useEffect(() => {
     // Only fetch if city is valid
@@ -48,7 +46,5 @@ function useGetItemsByCity() {
     fetchItems();
   }, [currentCity, dispatch]);
 }
-
-export default useGetItemsByCity;
 
 export default useGetItemsByCity;
