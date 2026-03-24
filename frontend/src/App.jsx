@@ -13,6 +13,7 @@ import CartPage from "./pages/CartPage";
 import CheckOut from "./pages/CheckOut";
 import OrderPlaced from "./pages/OrderPlaced";
 import MyOrders from "./pages/MyOrders";
+import TrackOrderPage from "./pages/TrackOrderPage";
 import Nav from "./components/Nav";
 
 import useGetCurrentUser from "./hooks/useGetCurrentUser";
@@ -92,7 +93,12 @@ function App() {
         path="/my-orders"
         element={userData ? <MyOrders /> : <Navigate to="/signin" />}
       />
+      <Route
+        path="/track-order/:orderId"
+        element={userData ? <TrackOrderPage /> : <Navigate to="/signin" />}
+      />
     </Routes>
+    
   );
 }
 export default App;
