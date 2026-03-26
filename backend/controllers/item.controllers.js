@@ -128,4 +128,32 @@ export const getItemsByShop=async (req,res)=>{
     }
 }
 
-//to search the items in searchbar
+//to Search the items in search bar
+export const searchItems=async (req,res)=>{
+    try {
+        const {query,city}=req.query;
+        if(!query || !city){
+            return null;
+        }
+        const shops = await Shop.find({
+            city:{$regex:new RegExp(`^${city}$`, "i")}
+        }).populate('items')
+        if(!shops || shops.length === 0){
+            return res.status(404).json({message: "No shop found in this city"});
+        }   
+        const shopIds=shops.map(s=>s._id);
+        const items=await Item.find({
+            shop:{$in:shopIds},
+            $or:[
+                {name:{$regex:query,$options:"i"}},
+                {category:{$regex:query,$options:"i"}},
+            ],
+        }).populate('shop','name image');
+
+        return res.status(200).json(items);
+
+
+    } catch (error) {
+        return res.status(500).json({message:`Search items error ${error}`});
+    }
+}

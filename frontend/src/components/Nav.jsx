@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { FaLocationDot } from "react-icons/fa6";
 import { IoIosSearch } from "react-icons/io";
 import { FiShoppingCart } from "react-icons/fi";
@@ -6,6 +6,7 @@ import { RxCross2 } from "react-icons/rx";
 import { useDispatch, useSelector } from "react-redux";
 import { serverUrl } from "../App";
 import axios from "axios";
+import { useState } from "react";
 import { clearUserSession } from "../redux/userSlice";
 import { FaPlus } from "react-icons/fa6";
 import { TbReceipt2 } from "react-icons/tb";
@@ -17,8 +18,9 @@ function Nav() {
     useSelector((state) => state.user) || {};
   const user = userData?.user;
   const { myShopData } = useSelector((state) => state.owner) || {};
-  const [showInfo, setShowInfo] = React.useState(false);
-  const [showSearch, setShowSearch] = React.useState(false);
+  const [showInfo, setShowInfo] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [query, setQuery] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const menuRef = React.useRef(null);
@@ -55,6 +57,23 @@ function Nav() {
       console.log(error);
     }
   };
+
+  const handleSearchItems=async () =>{
+      try {
+        const result=await axios.get(`${serverUrl}/api/item/search-items?query=${query}&city=${currentCity}`, {withCredentials:true})
+        console.log(result.data) 
+      } catch (error) {
+        console.log(error)
+        
+      }
+    }
+
+  useEffect(()=>{
+    if(query){
+      handleSearchItems()
+    } 
+  }, [query])
+
   return (
     <div className="w-full h-20 flex items-center justify-between md:justify-center gap-8 px-5 fixed top-0 z-50 bg-[#fff9f6] overflow-visible">
       {showSearch && user?.role == "user" && (
@@ -69,14 +88,16 @@ function Nav() {
               type="text"
               placeholder="search delicious food..."
               className="px-2.5 text-gray-700 outline-0 w-full"
+              onChange={(e)=>setQuery(e.target.value)} value={query}
             />
           </div>
         </div>
       )}
-
+      {/* Name of the app or logo can be here */}
       <h1 className="text-3xl font-bold m-2 text-[#ff4d2d] whitespace-nowrap">
         Vingo
       </h1>
+      {/* Search bar and location for user and add item and my orders for owner will be here */}
       {user?.role == "user" && (
         <div className="md:w-[60%] lg:w-[40%] h-[70px] bg-white shadow-xl rounded-lg items-center gap-5 hidden md:flex">
           <div className="flex items-center w-[30%] overflow-hidden gap-2.5 px-2.5 border-r-2 border-gray-400">
@@ -89,11 +110,12 @@ function Nav() {
               type="text"
               placeholder="search delicious food..."
               className="px-2.5 text-gray-700 outline-0 w-full"
+              onChange={(e)=>setQuery(e.target.value)} value={query}
             />
           </div>
         </div>
       )}
-
+      {/* Search bar and location */}
       <div className="flex items-center gap-4 min-w-[120px]">
         {user?.role == "user" &&
           (showSearch ? (
@@ -131,6 +153,7 @@ function Nav() {
               </>
             )}
 
+            {/* My Orders Icone */}
             <div
               className="hidden md:flex items-center gap-2 cursor-pointer relative px-3 py-1 rounded-lg bg-[#ff4d2d]/10 text-[#ff4d2d] font-medium"
               onClick={handleOpenMyOrders}

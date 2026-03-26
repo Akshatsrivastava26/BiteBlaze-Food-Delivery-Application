@@ -8,6 +8,7 @@ import { getItemById } from "../controllers/item.controllers.js";
 import { deleteItem } from "../controllers/item.controllers.js";
 import { getItemByCity } from "../controllers/item.controllers.js";
 import { getItemsByShop } from "../controllers/item.controllers.js";
+import { searchItems } from "../controllers/item.controllers.js";
 
 
 
@@ -19,6 +20,7 @@ itemRouter.get("/get-by-id/:itemId",isAuth,getItemById);
 itemRouter.delete("/delete-item/:itemId",isAuth,deleteItem);
 itemRouter.get("/get-by-city/:city",isAuth,getItemByCity);
 itemRouter.get("/get-by-shop/:shopId",isAuth,getItemsByShop);
+itemRouter.get("/search-items",isAuth,searchItems)
 
 
 
