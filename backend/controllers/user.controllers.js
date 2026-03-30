@@ -21,12 +21,10 @@ export const updateUserLocation = async (req, res) => {
     if (!req.userId) {
       return res.status(400).json({ message: "userId not found" });
     }
-
     const { lat, lon } = req.body;
     if (typeof lat !== "number" || typeof lon !== "number") {
       return res.status(400).json({ message: "Invalid location payload" });
     }
-
     const user = await User.findByIdAndUpdate(
       req.userId,
       {
