@@ -83,6 +83,18 @@ const userSlice = createSlice({
         }
       }
     },
+    updateRealtimeOrderStatus: (state, action) => {
+      const { orderId, shopId, status } = action.payload;
+      const order = state.myOrders.find((o) => o._id == orderId);
+      if (order) {
+        const shopOrder=order.shopOrders.find(so=>so.shop._id==shopId)
+        if(shopOrder){
+          shopOrder.status=status
+        }
+
+        
+      }
+    },
     clearUserSession: (state) => {
       state.userData = null;
       state.cartItems = [];
@@ -110,5 +122,6 @@ export const {
   clearUserSession,
   setSearchItems,
   setSocket,
+  updateRealtimeOrderStatus,
 } = userSlice.actions;
 export default userSlice.reducer;

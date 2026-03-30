@@ -113,7 +113,10 @@ export const placeOrder = async (req, res) => {
       shopOrders,
     });
 
-    await newOrder.populate("shopOrders.shopOrderItems.item","name image price");
+    await newOrder.populate(
+      "shopOrders.shopOrderItems.item",
+      "name image price",
+    );
     await newOrder.populate("shopOrders.shop", "name");
     await newOrder.populate("shopOrders.owner", "name socketId");
     await newOrder.populate("user", "name email mobile");
@@ -164,7 +167,7 @@ export const verifyPayment = async (req, res) => {
     order.razorpayPaymentId = razorpay_payment_id;
     await order.save();
 
-    await order.populate("shopOrders.shopOrderItems.item","name image price");
+    await order.populate("shopOrders.shopOrderItems.item", "name image price");
     await order.populate("shopOrders.shop", "name");
     await order.populate("shopOrders.owner", "name socketId");
     await order.populate("user", "name email mobile");
@@ -187,7 +190,9 @@ export const verifyPayment = async (req, res) => {
         });
       }
     }
-    return res.status(200).json({ message: "Payment verified and order confirmed", order });
+    return res
+      .status(200)
+      .json({ message: "Payment verified and order confirmed", order });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
   }
@@ -306,15 +311,15 @@ export const updateOrderStatus = async (req, res) => {
           availableBoys: [],
         });
       }
-      const createdAssignment = await DeliveryAssignment.create({
+      const deliveryAssignment = await DeliveryAssignment.create({
         order: order._id,
         shop: shopOrder.shop,
         shopOrderId: shopOrder._id,
         brodcastedTo: candidates,
       });
 
-      shopOrder.assignedDeliveryBoy = createdAssignment.assignedTo;
-      shopOrder.assignment = createdAssignment._id;
+      shopOrder.assignedDeliveryBoy = deliveryAssignment.assignedTo;
+      shopOrder.assignment = deliveryAssignment._id;
       deliveryBoysPayload = availableBoys.map((b) => ({
         id: b._id,
         fullname: b.fullName,
@@ -322,6 +327,27 @@ export const updateOrderStatus = async (req, res) => {
         latitude: b.location.coordinates?.[1],
         mobile: b.mobile,
       }));
+
+      await deliveryAssignment.populate("order")
+      await deliveryAssignment.populate("shop");
+
+      const io = req.app.get("io");
+      if (io) {
+        availableBoys.forEach((boy) => {
+          const boySocketId = boy.socketId;
+          if (boySocketId) {
+            io.to(boySocketId).emit("newAssignment", {
+              sentTo: boy._id,
+              assignmentId: deliveryAssignment._id,
+              orderId: deliveryAssignment.order._id,
+              shopName: deliveryAssignment.shop.name,
+              deliveryAddress: deliveryAssignment.order.deliveryAddress,
+              items: deliveryAssignment.order.shopOrders.find((so) => so._id.equals(deliveryAssignment.shopOrderId))?.shopOrderItems || [],
+              subtotal: deliveryAssignment.order.shopOrders.find((so) =>so._id.equals(deliveryAssignment.shopOrderId))?.subtotal,
+            });
+          }
+        });
+      }
     }
 
     await shopOrder.save();
@@ -332,6 +358,20 @@ export const updateOrderStatus = async (req, res) => {
       "shopOrders.assignedDeliveryBoy",
       "fullName email mobile",
     );
+    await order.populate("user", "socketId");
+
+    const io = req.app.get("io");
+    if (io) {
+      const userSocketId = order.user.socketId;
+      if (userSocketId) {
+        io.to(userSocketId).emit("update-status", {
+          orderId: order._id,
+          shopId: updatedShopOrder.shop._id,
+          status: updatedShopOrder.status,
+          userId: order.user._id,
+        });
+      }
+    }
 
     // await shopOrder.populate("shopOrderItems.item","name image price");
     return res.status(200).json({
@@ -364,7 +404,7 @@ export const getDeliveryBoyAssignment = async (req, res) => {
       deliveryAddress: a.order.deliveryAddress,
       items:
         a.order.shopOrders.find((so) => so._id.equals(a.shopOrderId))
-          .shopOrderItems || [],
+          ?.shopOrderItems || [],
       subtotal: a.order.shopOrders.find((so) => so._id.equals(a.shopOrderId))
         ?.subtotal,
     }));

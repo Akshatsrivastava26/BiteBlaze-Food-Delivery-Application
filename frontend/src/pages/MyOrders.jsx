@@ -7,6 +7,7 @@ import OwnerOrderCard from "../components/OwnerOrderCard";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setMyOrders } from "../redux/userSlice";
+import { updateRealtimeOrderStatus } from "../redux/userSlice";
 
 
 function MyOrders() {
@@ -21,8 +22,14 @@ function MyOrders() {
         dispatch(setMyOrders([data,...myOrders]))
       }
     })
+    socket?.on("update-status",({orderId,shopId,status,userId})=>{
+      if(userId==userData._id){
+        dispatch(updateRealtimeOrderStatus({orderId,shopId,status}))
+      }
+    })
     return () => {
       socket?.off("newOrder");
+      socket?.off("update-status");
     }
   },[socket])
   return (

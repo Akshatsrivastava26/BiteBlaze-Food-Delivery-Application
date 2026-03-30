@@ -5,9 +5,11 @@ import { serverUrl } from "../App";
 import { useEffect } from "react";
 import { useState } from "react";
 import DeliveryBoyTracking from "./DeliveryBoyTracking";
+import { use } from "react";
+import { set } from "mongoose";
 
 function DeliveryBoy() {
-  const { userData } = useSelector((state) => state.user);
+  const { userData, socket } = useSelector((state) => state.user);
   const currentUser = userData?.user;
   const [currentOrder, setCurrentOrder] = useState();
   const [showOtpBox, setShowOtpBox] = useState(false);
@@ -80,6 +82,20 @@ function DeliveryBoy() {
       console.log("VERIFY OTP ERROR:", error);
     }
   };
+
+  useEffect(() => {
+    socket?.on("newAssignment", (data) => {
+      if(data.sentTo == userData._id){
+        setAvailableAssignments((prev) => [...prev, data]);
+
+      }
+    });
+    return () => {
+      socket?.off("newAssignment");
+    }
+
+  },[socket])
+  
 
   useEffect(() => {
     if (!currentUser) return;
