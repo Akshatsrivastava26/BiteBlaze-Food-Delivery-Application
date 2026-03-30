@@ -7,7 +7,6 @@ import Razorpay from "razorpay";
 import dotenv from "dotenv";
 dotenv.config();
 
-
 //instance of razorpay for payment integration
 let instance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -69,7 +68,7 @@ export const placeOrder = async (req, res) => {
 
     // Razorpay order creation for online payment
     if (paymentMethod == "online") {
-      const razorOrder =await instance.orders.create({
+      const razorOrder = await instance.orders.create({
         amount: Math.round(totalAmount * 100), // amount in paise
         currency: "INR",
         receipt: `receipt_${Date.now()}`,
@@ -89,7 +88,7 @@ export const placeOrder = async (req, res) => {
         totalAmount,
         shopOrders,
         razorpayOrderId: (await razorOrder)._id,
-        payment:false,
+        payment: false,
       });
       return res.status(200).json({
         razorOrder,
@@ -114,11 +113,29 @@ export const placeOrder = async (req, res) => {
       shopOrders,
     });
 
-    await newOrder.populate(
-      "shopOrders.shopOrderItems.item",
-      "name image price",
-    );
+    await newOrder.populate("shopOrders.shopOrderItems.item","name image price");
     await newOrder.populate("shopOrders.shop", "name");
+    await newOrder.populate("shopOrders.owner", "name socketId");
+    await newOrder.populate("user", "name email mobile");
+
+    const io = req.app.get("io");
+
+    if (io) {
+      newOrder.shopOrders.forEach((shopOrder) => {});
+      const ownerSocketId = shopOrder.owner.ownerSocketId;
+      if (ownerSocketId) {
+        io.to(ownerSocketId).emit("newOrder", {
+          _id: newOrder._id,
+          paymentMethod: newOrder.paymentMethod,
+          user: newOrder.user,
+          shopOrders: shopOrder,
+          createdAt: newOrder.createdAt,
+          deliveryAddress: newOrder.deliveryAddress,
+          totalAmount: newOrder.totalAmount,
+          payment: newOrder.payment,
+        });
+      }
+    }
 
     return res
       .status(201)
@@ -134,26 +151,47 @@ export const placeOrder = async (req, res) => {
 //to verify the payment after placing order for online payment method
 export const verifyPayment = async (req, res) => {
   try {
-    const {razorpay_payment_id,orderId }= req.body;
-    const payment=await instance.payments.fetch(razorpay_payment_id);
-    if(!payment || payment.status!="captured"){
-      return res.status(400).json({message:"Payment verification failed"})
+    const { razorpay_payment_id, orderId } = req.body;
+    const payment = await instance.payments.fetch(razorpay_payment_id);
+    if (!payment || payment.status != "captured") {
+      return res.status(400).json({ message: "Payment verification failed" });
     }
-    const order=await Order.findById(orderId)  
-    if(!order){
-      return res.status(400).json({message:"Order not found"})
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(400).json({ message: "Order not found" });
     }
-    order.payment=true;
-    order.razorpayPaymentId=razorpay_payment_id;
+    order.payment = true;
+    order.razorpayPaymentId = razorpay_payment_id;
     await order.save();
 
-    await order.populate("shopOrders.shopOrderItem","name image price")
-    await order.populate("shopOrders.shop","name")
-    return res.status(200).json({message:"Payment verified and order confirmed",order})
+    await order.populate("shopOrders.shopOrderItems.item","name image price");
+    await order.populate("shopOrders.shop", "name");
+    await order.populate("shopOrders.owner", "name socketId");
+    await order.populate("user", "name email mobile");
+
+    const io = req.app.get("io");
+
+    if (io) {
+      order.shopOrders.forEach((shopOrder) => {});
+      const ownerSocketId = shopOrder.owner.ownerSocketId;
+      if (ownerSocketId) {
+        io.to(ownerSocketId).emit("newOrder", {
+          _id: order._id,
+          paymentMethod: order.paymentMethod,
+          user: order.user,
+          shopOrders: shopOrder,
+          createdAt: order.createdAt,
+          deliveryAddress: order.deliveryAddress,
+          totalAmount: order.totalAmount,
+          payment: order.payment,
+        });
+      }
+    }
+    return res.status(200).json({ message: "Payment verified and order confirmed", order });
   } catch (error) {
-    return res.status(500).json({message:"Internal server error"})
+    return res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 //User ke saare Orders ko get karne ke liye controllers
 export const getMyOrders = async (req, res) => {
@@ -206,7 +244,7 @@ export const getMyOrders = async (req, res) => {
         createdAt: order.createdAt,
         deliveryAddress: order.deliveryAddress,
         totalAmount: order.totalAmount,
-        payment:order.payment,
+        payment: order.payment,
       }));
 
       return res.status(200).json({ orders: filteredOrder });
