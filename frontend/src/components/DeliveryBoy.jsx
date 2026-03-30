@@ -5,8 +5,6 @@ import { serverUrl } from "../App";
 import { useEffect } from "react";
 import { useState } from "react";
 import DeliveryBoyTracking from "./DeliveryBoyTracking";
-import { use } from "react";
-import { set } from "mongoose";
 
 function DeliveryBoy() {
   const { userData, socket } = useSelector((state) => state.user);
