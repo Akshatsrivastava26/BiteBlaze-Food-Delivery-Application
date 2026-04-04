@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { FaUtensils } from "react-icons/fa";
 import { useState } from "react";
-import { serverUrl } from "../App";
+import { serverUrl } from "../config/env";
 import axios from "axios";
 import { setMyShopData } from "../redux/ownerSlice";
 import { ClipLoader } from "react-spinners";

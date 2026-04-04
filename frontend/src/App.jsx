@@ -1,126 +1,77 @@
-import { Navigate, Route, Routes } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { Navigate, Outlet, Route, Routes } from "react-router-dom";
+import { Suspense } from "react";
 
-import SignUp from "./pages/SignUp";
-import SignIn from "./pages/SignIn";
-import Home from "./pages/Home";
-import ForgotPassword from "./pages/ForgotPassword";
-import CreateEditShop from "./pages/CreateEditShop";
-import AddItem from "./pages/AddItem";
-import EditItem from "./pages/EditItem";
-import CartPage from "./pages/CartPage";
-import CheckOut from "./pages/CheckOut";
-import OrderPlaced from "./pages/OrderPlaced";
-import MyOrders from "./pages/MyOrders";
-import TrackOrderPage from "./pages/TrackOrderPage";
-import Shop from "./pages/Shop";
-import Nav from "./components/Nav";
+import AppLayout from "./layouts/AppLayout";
+import { protectedRoutes, publicRoutes } from "./routes/appRoutes";
+import useAppBootstrap from "./hooks/useAppBootstrap";
+import GlassCard from "./components/ui/GlassCard";
 
-import useGetCurrentUser from "./hooks/useGetCurrentUser";
-import useGetCity from "./hooks/useGetCity";
-import useGetMyShop from "./hooks/useGetMyShop";
-import useGetShopByCity from "./hooks/useGetShopByCity";
-import useGetItemsByCity from "./hooks/useGetItemsByCity";
-import useGetMyOrders from "./hooks/useGetMyOrders";
-import useUpdateLocation from "./hooks/useUpdateLocation";
-import { useDispatch } from "react-redux";
-import { useEffect } from "react";
-import { io } from "socket.io-client";
-import { setSocket } from "./redux/userSlice";
+function FullPageLoader({ label = "Loading Vingo experience..." }) {
+  return (
+    <div className="w-screen min-h-screen flex justify-center items-center bg-[radial-gradient(1000px_600px_at_20%_-10%,var(--brand-soft),transparent_55%),radial-gradient(900px_500px_at_90%_0%,var(--brand-haze),transparent_45%),var(--bg-canvas)] px-4">
+      <GlassCard className="w-full max-w-md px-8 py-10 flex flex-col items-center gap-4">
+        <h1 className="text-4xl font-extrabold brand-gradient-text tracking-tight">
+          Vingo
+        </h1>
+        <div className="h-1.5 w-44 rounded-full bg-white/70 overflow-hidden">
+          <div className="h-full w-1/2 brand-gradient-bg animate-pulse" />
+        </div>
+        <p className="text-(--text-muted) text-sm text-center">{label}</p>
+      </GlassCard>
+    </div>
+  );
+}
 
-export const serverUrl = import.meta.env.VITE_BACKEND_URL;
+function PublicOnlyRoute({ isAuthenticated }) {
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  return <Outlet />;
+}
+
+function ProtectedRoute({ isAuthenticated }) {
+  if (!isAuthenticated) {
+    return <Navigate to="/signin" replace />;
+  }
+  return <Outlet />;
+}
 
 function App() {
-  const { userData } = useSelector((state) => state.user);
-  const userId = userData?.user?._id || userData?._id;
-  const loading = useGetCurrentUser();
-  const dispatch = useDispatch();
-  useUpdateLocation();
-  useGetCity();
-  useGetMyShop();
-  useGetShopByCity();
-  useGetItemsByCity();
-  useGetMyOrders();
-
-  useEffect(() => {
-    const socketInstance = io(serverUrl, { withCredentials: true });
-    dispatch(setSocket(socketInstance));
-    socketInstance.on("connect", () => {
-      if (userId) {
-        socketInstance.emit("identity", { userId });
-      }
-    });
-    return () => {
-      socketInstance.disconnect();
-    };
-  }, [userId, dispatch]);
+  const { loading, isAuthenticated } = useAppBootstrap();
 
   if (loading) {
-    return (
-      <div className="w-screen min-h-screen flex justify-center items-center bg-[#fff9f6]">
-        <div className="flex flex-col items-center gap-3">
-          <h1 className="text-3xl font-bold text-[#ff4d2d]">Vingo</h1>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return <FullPageLoader label="Bootstrapping app state..." />;
   }
 
   return (
-    <Routes>
-      <Route
-        path="/signup"
-        element={!userData ? <SignUp /> : <Navigate to="/" />}
-      />
-      <Route
-        path="/signin"
-        element={!userData ? <SignIn /> : <Navigate to="/" />}
-      />
-      <Route
-        path="/forgot-password"
-        element={!userData ? <ForgotPassword /> : <Navigate to={"/"} />}
-      />
-      <Route
-        path="/"
-        element={userData ? <Home /> : <Navigate to="/signin" />}
-      />
-      <Route
-        path="/create-edit-shop"
-        element={userData ? <CreateEditShop /> : <Navigate to="/signin" />}
-      />
-      <Route
-        path="/add-item"
-        element={userData ? <AddItem /> : <Navigate to="/signin" />}
-      />
-      <Route
-        path="/edit-item/:itemId"
-        element={userData ? <EditItem /> : <Navigate to="/signin" />}
-      />
-      <Route
-        path="/cart"
-        element={userData ? <CartPage /> : <Navigate to="/signin" />}
-      />
-      <Route
-        path="/checkout"
-        element={userData ? <CheckOut /> : <Navigate to="/signin" />}
-      />
-      <Route
-        path="/order-placed"
-        element={userData ? <OrderPlaced /> : <Navigate to="/signin" />}
-      />
-      <Route
-        path="/my-orders"
-        element={userData ? <MyOrders /> : <Navigate to="/signin" />}
-      />
-      <Route
-        path="/track-order/:orderId"
-        element={userData ? <TrackOrderPage /> : <Navigate to="/signin" />}
-      />
-      <Route
-        path="/shop/:shopId"
-        element={userData ? <Shop /> : <Navigate to="/signin" />}
-      />
-    </Routes>
+    <Suspense fallback={<FullPageLoader />}>
+      <Routes>
+        <Route element={<PublicOnlyRoute isAuthenticated={isAuthenticated} />}>
+          {publicRoutes.map((route) => {
+            const Page = route.component;
+            return (
+              <Route key={route.path} path={route.path} element={<Page />} />
+            );
+          })}
+        </Route>
+
+        <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
+          <Route element={<AppLayout />}>
+            {protectedRoutes.map((route) => {
+              const Page = route.component;
+              return (
+                <Route key={route.path} path={route.path} element={<Page />} />
+              );
+            })}
+          </Route>
+        </Route>
+
+        <Route
+          path="*"
+          element={<Navigate to={isAuthenticated ? "/" : "/signin"} replace />}
+        />
+      </Routes>
+    </Suspense>
   );
 }
 export default App;

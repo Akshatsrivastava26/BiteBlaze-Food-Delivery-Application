@@ -8,9 +8,8 @@ import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { addMyOrder, updateRealtimeOrderStatus } from "../redux/userSlice";
 
-
 function MyOrders() {
-  const { userData, myOrders,socket } = useSelector((state) => state.user);
+  const { userData, myOrders, socket } = useSelector((state) => state.user);
   const currentUser = userData?.user || userData;
   const userRole = currentUser?.role;
   const currentUserId = currentUser?._id;
@@ -22,7 +21,10 @@ function MyOrders() {
 
     const handleNewOrder = (data) => {
       const incomingOrderId = data?._id;
-      if (!incomingOrderId || myOrders?.some((order) => order?._id === incomingOrderId)) {
+      if (
+        !incomingOrderId ||
+        myOrders?.some((order) => order?._id === incomingOrderId)
+      ) {
         return;
       }
 
@@ -30,10 +32,16 @@ function MyOrders() {
         data?.shopOrders?.owner?._id || data?.shopOrders?.[0]?.owner?._id;
       const incomingUserId = data?.user?._id;
 
-      if (userRole === "owner" && String(incomingOwnerId) !== String(currentUserId)) {
+      if (
+        userRole === "owner" &&
+        String(incomingOwnerId) !== String(currentUserId)
+      ) {
         return;
       }
-      if (userRole === "user" && String(incomingUserId) !== String(currentUserId)) {
+      if (
+        userRole === "user" &&
+        String(incomingUserId) !== String(currentUserId)
+      ) {
         return;
       }
 
@@ -55,22 +63,21 @@ function MyOrders() {
     };
   }, [socket, currentUserId, userRole, myOrders, dispatch]);
   return (
-    <div className="w-full min-h-screen bg-[#fff9f6] flex justify-center px-4">
-      <div className="w-full max-w-[800px] p-4">
-        {/* Heading Part */}
+    <div className="w-full min-h-screen flex justify-center px-3 sm:px-5 py-6">
+      <div className="w-full max-w-[920px] section-card p-4 sm:p-6">
         <div className="flex items-center gap-5 mb-6">
           <div className="z-10 cursor-pointer" onClick={() => navigate("/")}>
             <IoIosArrowRoundBack
               size={35}
-              className="text-[#ff4d2d] cursor-pointer"
+              className="text-(--brand-2) cursor-pointer"
             />
           </div>
-          <h1 className="text-2xl font-bold text-start">My Orders</h1>
+          <h1 className="section-title">My Orders</h1>
         </div>
-        {/* Orders will be shown here */}
+
         <div className="space-y-6">
           {(!myOrders || myOrders.length === 0) && (
-            <div className="bg-white rounded-lg shadow p-5 text-gray-600">
+            <div className="bg-(--bg-elevated) rounded-lg shadow-(--shadow-sm) p-6 text-(--text-muted) text-center border border-(--border-soft)">
               No orders yet.
             </div>
           )}

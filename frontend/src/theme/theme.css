@@ -1,0 +1,144 @@
+:root {
+  --brand-1: #ff7a18;
+  --brand-2: #ff2d55;
+  --brand-3: #ff4e2f;
+  --brand-soft: #ffd9ca;
+  --brand-haze: #ffd2dc;
+
+  --accent-lime: #8de29b;
+  --accent-sky: #89cbff;
+  --accent-plum: #d9a6ff;
+
+  --bg-canvas: #fff7f2;
+  --bg-surface: #fffaf8;
+  --bg-elevated: #ffffff;
+  --bg-subtle: #fff0ea;
+
+  --text-primary: #221715;
+  --text-secondary: #4a3b36;
+  --text-muted: #7a6962;
+  --text-inverse: #fffdfc;
+
+  --border-soft: #f2d6cb;
+  --border-strong: #dfb7a9;
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  --shadow-sm: 0 4px 14px rgba(181, 93, 54, 0.1);
+  --shadow-md: 0 10px 30px rgba(181, 93, 54, 0.16);
+  --shadow-lg: 0 18px 44px rgba(181, 93, 54, 0.2);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+}
+
+body {
+  font-family: "Manrope", "Satoshi", "Segoe UI", sans-serif;
+  color: var(--text-primary);
+  background: var(--bg-canvas);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  letter-spacing: -0.02em;
+}
+
+.brand-gradient-text {
+  background: linear-gradient(120deg, var(--brand-1), var(--brand-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.brand-gradient-bg {
+  background: linear-gradient(120deg, var(--brand-1), var(--brand-2));
+}
+
+.surface-card {
+  background: color-mix(in srgb, var(--bg-elevated) 86%, transparent);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(18px);
+}
+
+.btn-brand {
+  background: linear-gradient(120deg, var(--brand-1), var(--brand-2));
+  color: var(--text-inverse);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  transition:
+    transform 240ms ease,
+    box-shadow 240ms ease,
+    filter 240ms ease;
+}
+
+.btn-brand:hover {
+  filter: saturate(1.08) brightness(1.02);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.animate-app-fade {
+  animation: appFade 280ms ease-out;
+}
+
+.section-card {
+  background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(14px);
+}
+
+.section-title {
+  color: var(--text-primary);
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.soft-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border-soft);
+  background: color-mix(in srgb, var(--bg-elevated) 82%, transparent);
+  color: var(--text-secondary);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@keyframes appFade {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

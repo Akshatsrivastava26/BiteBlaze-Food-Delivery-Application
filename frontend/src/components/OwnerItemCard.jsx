@@ -5,7 +5,7 @@ import { FaTrashAlt } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import axios from 'axios';
-import { serverUrl } from '../App';
+import { serverUrl } from '../config/env';
 import { setMyShopData } from '../redux/ownerSlice';
 
 function OwnerItemCard({ data }) {

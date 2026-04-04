@@ -31,7 +31,7 @@ function DeliveryBoyTracking({ data }) {
 
   if (!hasDeliveryBoyCoords || !hasCustomerCoords) {
     return (
-      <div className="w-full mt-3 rounded-xl border border-orange-100 bg-orange-50 p-4 text-sm text-gray-700">
+      <div className="w-full mt-3 rounded-lg border border-(--border-soft) bg-(--bg-subtle) p-4 text-sm text-(--text-secondary)">
         Live tracking is not available yet.
       </div>
     );
@@ -45,7 +45,7 @@ function DeliveryBoyTracking({ data }) {
   const center = [deliveryBoyLat, deliveryBoyLon];
 
   return (
-    <div className="w-full h-[400px] mt-3 rounded-xl overflow-hidden shadow-md">
+    <div className="w-full h-[400px] mt-3 rounded-lg overflow-hidden shadow-(--shadow-sm) border border-(--border-soft)">
       <MapContainer
         className={"w-full h-full"}
         center={center}
@@ -65,7 +65,7 @@ function DeliveryBoyTracking({ data }) {
         </Marker>
         {/* icon for customer */}
         <Marker position={[customerLat, customerLon]} icon={customerIcon}>
-          <Popup>Delivery Boy</Popup>
+          <Popup>Customer</Popup>
         </Marker>
 
         <Polyline positions={path} color="blue" weight={4} />

@@ -5,7 +5,7 @@ import { FaRegEye } from "react-icons/fa";
 import { FaRegEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import axios from "axios";
-import { serverUrl } from "../App.jsx";
+import { serverUrl } from "../config/env";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "../../firebase.js";
 import { ClipLoader } from "react-spinners";
@@ -17,12 +17,10 @@ import {
   isValidMobileNumber,
 } from "../utils/validation";
 import { logger } from "../utils/logger";
+import AuthShell from "../components/ui/AuthShell";
+import BrandButton from "../components/ui/BrandButton";
 
 function SignUp() {
-  const primaryColor = "#ff4d2d";
-  const hoverColor = "#e64323";
-  const bgColor = "#fff9f9";
-  const borderColor = "#ddd";
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState("user");
   const navigate = useNavigate();
@@ -33,6 +31,8 @@ function SignUp() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
+  const inputClassName =
+    "w-full rounded-[var(--radius-md)] border border-[var(--border-soft)] bg-white/90 px-3.5 py-2.5 text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none transition-all duration-200 focus:border-[var(--brand-1)] focus:ring-2 focus:ring-[color:var(--brand-soft)]";
 
   const handleSignUp = async () => {
     const normalizedEmail = email.trim().toLowerCase();
@@ -110,102 +110,94 @@ function SignUp() {
       setError(error?.response?.data?.message || "Google sign-up failed");
     }
   };
-  return (
-    <div
-      className="min-h-screen w-full flex items-center justify-center p-4"
-      style={{ background: bgColor }}
-    >
-      <div
-        className={`bg-white rounded-xl shadow-lg w-full max-w-md p-8 border`}
-        style={{ border: `1px solid ${borderColor}` }}
-      >
-        <h1
-          className={`text-3xl font-bold mb-2`}
-          style={{ color: primaryColor }}
-        >
-          Vingo
-        </h1>
-        <p className="text-gray-600 mb-8">
-          Create your account to get started with delicious food deliveries
-        </p>
 
-        {/* fullName */}
-        <div className="mb-4">
+  return (
+    <AuthShell
+      title="Create Account"
+      subtitle="Join Vingo and unlock smarter discovery, live delivery tracking, and one-tap reorders."
+      sideTitle="Launch your food routine in minutes."
+      sideDescription="Whether you are ordering, managing a shop, or handling deliveries, your workspace adapts instantly."
+    >
+      <div className="space-y-4">
+        <div>
           <label
             htmlFor="fullName"
-            className="block text-gray-700 font-medium mb-1"
+            className="block text-sm font-medium text-(--text-secondary) mb-1.5"
           >
-            Full Name
+            Full name
           </label>
           <input
+            id="fullName"
             type="text"
-            className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500"
-            placeholder="Enter your Full Name"
-            style={{ border: `1px solid ${borderColor}` }}
+            autoComplete="name"
+            className={inputClassName}
+            placeholder="Alex Johnson"
             onChange={(e) => setFullName(e.target.value)}
             value={fullName}
             required
           />
         </div>
 
-        {/* email */}
-        <div className="mb-4">
+        <div>
           <label
             htmlFor="email"
-            className="block text-gray-700 font-medium mb-1"
+            className="block text-sm font-medium text-(--text-secondary) mb-1.5"
           >
             Email
           </label>
           <input
+            id="email"
             type="email"
-            className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500"
-            placeholder="Enter your Email"
-            style={{ border: `1px solid ${borderColor}` }}
+            autoComplete="email"
+            className={inputClassName}
+            placeholder="name@example.com"
             onChange={(e) => setEmail(e.target.value)}
             value={email}
             required
           />
         </div>
 
-        {/* mobile */}
-        <div className="mb-4">
+        <div>
           <label
             htmlFor="mobile"
-            className="block text-gray-700 font-medium mb-1"
+            className="block text-sm font-medium text-(--text-secondary) mb-1.5"
           >
-            Mobile Number
+            Mobile number
           </label>
           <input
-            type="mobile"
-            className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500"
-            placeholder="Enter your Mobile Number"
-            style={{ border: `1px solid ${borderColor}` }}
+            id="mobile"
+            type="tel"
+            inputMode="numeric"
+            autoComplete="tel"
+            className={inputClassName}
+            placeholder="10-digit phone number"
             onChange={(e) => setMobileNumber(e.target.value)}
             value={mobileNumber}
             required
           />
         </div>
 
-        {/* password */}
-        <div className="mb-4">
+        <div>
           <label
             htmlFor="password"
-            className="block text-gray-700 font-medium mb-1"
+            className="block text-sm font-medium text-(--text-secondary) mb-1.5"
           >
             Password
           </label>
           <div className="relative">
             <input
-              type={`${showPassword ? "text" : "password"}`}
-              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500"
-              placeholder="Enter your Password"
-              style={{ border: `1px solid ${borderColor}` }}
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              className={inputClassName}
+              placeholder="At least 8 chars, 1 uppercase, 1 number"
               onChange={(e) => setPassword(e.target.value)}
               value={password}
               required
             />
             <button
-              className="absolute right-3 cursor-pointer top-3.5 text-gray-500"
+              type="button"
+              className="absolute right-3 top-3.5 text-(--text-muted) hover:text-(--text-primary) transition-colors cursor-pointer"
               onClick={() => setShowPassword((prev) => !prev)}
             >
               {!showPassword ? <FaRegEye /> : <FaRegEyeSlash />}
@@ -213,60 +205,60 @@ function SignUp() {
           </div>
         </div>
 
-        {/* role */}
-        <div className="mb-4">
-          <label
-            htmlFor="role"
-            className="block text-gray-700 font-medium mb-1"
-          >
+        <div>
+          <p className="block text-sm font-medium text-(--text-secondary) mb-2">
             Role
-          </label>
-          <div className="flex gap-2">
+          </p>
+          <div className="grid grid-cols-3 gap-2">
             {["user", "owner", "deliveryBoy"].map((r) => (
               <button
                 key={r}
-                className="flex-1 border rounded-lg px-3 py-2 text-center font-medium transition-colors cursor-pointer"
+                type="button"
+                className={`rounded-md px-3 py-2 text-sm font-semibold capitalize border transition-all duration-200 cursor-pointer ${
+                  role === r
+                    ? "brand-gradient-bg text-white border-white/20 shadow-(--shadow-sm)"
+                    : "bg-white/85 text-(--text-secondary) border-(--border-soft) hover:border-(--brand-1)"
+                }`}
                 onClick={() => setRole(r)}
-                style={
-                  role == r
-                    ? { backgroundColor: primaryColor, color: "white" }
-                    : {
-                        border: `1px solid ${primaryColor}`,
-                        color: primaryColor,
-                      }
-                }
               >
-                {r}
+                {r === "deliveryBoy" ? "Delivery" : r}
               </button>
             ))}
           </div>
         </div>
-        <button
-          className="w-full  mt-4 flex items-center justify-center gap-2 border rounded-lg px-4 py-2 transition duration-200 bg-[#ff4d2d] text-white hover:bg-[#e64323] cursor-pointer"
+
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+        <BrandButton
+          className="w-full mt-2"
           onClick={handleSignUp}
           disabled={loading}
         >
-          {loading ? <ClipLoader size={20} color="white" /> : "Sign Up"}
-        </button>
+          {loading ? <ClipLoader size={18} color="white" /> : "Create Account"}
+        </BrandButton>
 
-        {error && <p className="text-red-500 text-center my-2">*{error}</p>}
-
-        <button
-          className="w-full mt-4 flex items-center justify-center gap-2 border rounded-lg px-4 py-2 transition duration-200 border-gray-400 hover:bg-gray-100 cursor-pointer"
+        <BrandButton
+          variant="ghost"
+          className="w-full"
           onClick={handleGoogleAuth}
+          disabled={loading}
         >
           <FcGoogle size={20} />
-          <span>Sign Up with Google</span>
-        </button>
-        <p
-          className="text-center mt-6 cursor-pointer"
-          onClick={() => navigate("/signin")}
-        >
+          <span>Continue with Google</span>
+        </BrandButton>
+
+        <p className="text-sm text-center text-(--text-muted) pt-1">
           Already have an account?{" "}
-          <span className="text-[#ff4d2d]">Sign In</span>
+          <button
+            type="button"
+            className="font-semibold text-(--brand-2) hover:opacity-80 cursor-pointer"
+            onClick={() => navigate("/signin")}
+          >
+            Sign in
+          </button>
         </p>
       </div>
-    </div>
+    </AuthShell>
   );
 }
 

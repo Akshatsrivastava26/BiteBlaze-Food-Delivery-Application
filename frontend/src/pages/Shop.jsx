@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useEffect } from "react";
-import { serverUrl } from "../App";
+import { serverUrl } from "../config/env";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { FaStore } from "react-icons/fa6";
@@ -9,6 +9,7 @@ import { FaUtensils } from "react-icons/fa";
 import { FaArrowLeft } from "react-icons/fa";
 import FoodCard from "../components/FoodCard";
 import { useNavigate } from "react-router-dom";
+import { logger } from "../utils/logger";
 
 function Shop() {
   const { shopId } = useParams();
@@ -24,7 +25,7 @@ function Shop() {
       setShop(result.data.shop);
       setItems(result.data.items);
     } catch (error) {
-      console.log(error);
+      logger.error("Fetch shop failed", error);
     }
   };
 
@@ -33,55 +34,55 @@ function Shop() {
   }, [shopId]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-transparent">
       <button
-        className="absolute top-4 left-4 z-20 flex items-center gap-2 bg-black/50 hover:bg-black/70 text-white px-3 rounded-full shadow transition cursor-pointer"
+        className="absolute top-4 left-4 z-20 flex items-center gap-2 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white px-3 py-2 rounded-full shadow transition cursor-pointer"
         onClick={() => navigate("/")}
       >
         <FaArrowLeft />
         <span>Back</span>
       </button>
 
-      {/* shope cover image and name and address */}
       {shop && (
-        <div className="relative w-full h-64 md:h-80 lg:h-96">
+        <div className="relative w-full h-[280px] md:h-[340px] lg:h-[380px] rounded-xl overflow-hidden">
           <img
             src={shop.image}
             alt="Shop Cover"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/30 flex flex-col justify-center items-center text-center px-4">
+          <div className="absolute inset-0 bg-linear-to-b from-black/75 via-black/45 to-black/35 flex flex-col justify-center items-center text-center px-4">
             <FaStore className="text-white text-4xl mb-3 drop-shadow-md" />
             <h1 className="text-3xl md:text-5xl font-extrabold text-white drop-shadow-lg">
               {shop.name}
             </h1>
-            <div className="flex items-center gap-[10px]">
-              <FaLocationDot size={22} color="red" />
-              <p className="text-lg font-medium text-gray-200 mt-[10px]">
+            <div className="flex items-center gap-2.5 mt-2">
+              <FaLocationDot size={20} color="#fda4af" />
+              <p className="text-base md:text-lg font-medium text-gray-200">
                 {shop.address}
               </p>
             </div>
           </div>
         </div>
       )}
-      {/* menue food items display */}
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <h2 className="flex items-center justify-center gap-3 text-3xl font-bold mb-10 text-gray-800">
-          <FaUtensils color="red" />
-          Our Menu
-        </h2>
-        {/* mapping items here  */}
-        {items.length > 0 ? (
-          <div className="flex flex-wrap justify-center gap-8">
-            {items.map((item) => (
-              <FoodCard data={item} key={item._id || item.id} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-center text-gray-500 text-lg">
-            No Items Available
-          </p>
-        )}
+
+      <div className="max-w-7xl mx-auto px-3 sm:px-5 py-8">
+        <div className="section-card p-5 sm:p-6">
+          <h2 className="flex items-center justify-center gap-3 text-3xl font-bold mb-8 text-(--text-primary)">
+            <FaUtensils color="#ec4899" />
+            Our Menu
+          </h2>
+          {items.length > 0 ? (
+            <div className="flex flex-wrap justify-center gap-8">
+              {items.map((item) => (
+                <FoodCard data={item} key={item._id || item.id} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-(--text-muted) text-lg">
+              No Items Available
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

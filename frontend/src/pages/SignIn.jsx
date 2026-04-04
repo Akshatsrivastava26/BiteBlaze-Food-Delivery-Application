@@ -5,7 +5,7 @@ import { FaRegEye } from "react-icons/fa";
 import { FaRegEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import axios from "axios";
-import { serverUrl } from "../App.jsx";
+import { serverUrl } from "../config/env";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "../../firebase.js";
 import { ClipLoader } from "react-spinners";
@@ -13,12 +13,10 @@ import { useDispatch } from "react-redux";
 import { setUserData } from "../redux/userSlice.js";
 import { isStrongPassword, isValidEmail } from "../utils/validation";
 import { logger } from "../utils/logger";
+import AuthShell from "../components/ui/AuthShell";
+import BrandButton from "../components/ui/BrandButton";
 
 function SignIn() {
-  const primaryColor = "#ff4d2d";
-  const hoverColor = "#e64323";
-  const bgColor = "#fff9f9";
-  const borderColor = "#ddd";
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -26,6 +24,8 @@ function SignIn() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
+  const inputClassName =
+    "w-full rounded-[var(--radius-md)] border border-[var(--border-soft)] bg-white/90 px-3.5 py-2.5 text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none transition-all duration-200 focus:border-[var(--brand-1)] focus:ring-2 focus:ring-[color:var(--brand-soft)]";
 
   const handleSignIn = async () => {
     const normalizedEmail = email.trim().toLowerCase();
@@ -77,64 +77,55 @@ function SignIn() {
       setError(error?.response?.data?.message || "Google sign-in failed");
     }
   };
-  return (
-    <div
-      className="min-h-screen w-full flex items-center justify-center p-4"
-      style={{ background: bgColor }}
-    >
-      <div
-        className={`bg-white rounded-xl shadow-lg w-full max-w-md p-8 border`}
-        style={{ border: `1px solid ${borderColor}` }}
-      >
-        <h1
-          className={`text-3xl font-bold mb-2`}
-          style={{ color: primaryColor }}
-        >
-          Vingo
-        </h1>
-        <p className="text-gray-600 mb-8">
-          Sign in to your account to get started with delicious food deliveries
-        </p>
 
-        {/* email */}
-        <div className="mb-4">
+  return (
+    <AuthShell
+      title="Welcome Back"
+      subtitle="Sign in to continue your food journey with smart recommendations and realtime tracking."
+      sideTitle="From craving to doorstep, in one smooth flow."
+      sideDescription="Discover local favorites, live-track delivery, and enjoy a checkout built for speed. Vingo keeps your ordering experience effortless on every screen."
+    >
+      <div className="space-y-4">
+        <div>
           <label
             htmlFor="email"
-            className="block text-gray-700 font-medium mb-1"
+            className="block text-sm font-medium text-(--text-secondary) mb-1.5"
           >
             Email
           </label>
           <input
+            id="email"
             type="email"
-            className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500"
-            placeholder="Enter your Email"
-            style={{ border: `1px solid ${borderColor}` }}
+            autoComplete="email"
+            className={inputClassName}
+            placeholder="name@example.com"
             onChange={(e) => setEmail(e.target.value)}
             value={email}
             required
           />
         </div>
 
-        {/* password */}
-        <div className="mb-4">
+        <div>
           <label
             htmlFor="password"
-            className="block text-gray-700 font-medium mb-1"
+            className="block text-sm font-medium text-(--text-secondary) mb-1.5"
           >
             Password
           </label>
           <div className="relative">
             <input
-              type={`${showPassword ? "text" : "password"}`}
-              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500"
-              placeholder="Enter your Password"
-              style={{ border: `1px solid ${borderColor}` }}
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              className={inputClassName}
+              placeholder="Enter your password"
               onChange={(e) => setPassword(e.target.value)}
               value={password}
               required
             />
             <button
-              className="absolute right-3 cursor-pointer top-3.5 text-gray-500"
+              type="button"
+              className="absolute right-3 top-3.5 text-(--text-muted) hover:text-(--text-primary) transition-colors cursor-pointer"
               onClick={() => setShowPassword((prev) => !prev)}
             >
               {!showPassword ? <FaRegEye /> : <FaRegEyeSlash />}
@@ -142,40 +133,48 @@ function SignIn() {
           </div>
         </div>
 
-        {/* forgot password */}
-        <div
-          className="text-right mb-4 text-[#ff4d2d] font-medium cursor-pointer"
-          onClick={() => navigate("/forgot-password")}
-        >
-          Forgot Password
+        <div className="text-right">
+          <button
+            type="button"
+            className="text-sm font-semibold text-(--brand-2) hover:opacity-80 cursor-pointer"
+            onClick={() => navigate("/forgot-password")}
+          >
+            Forgot Password?
+          </button>
         </div>
 
-        <button
-          className="w-full  mt-4 flex items-center justify-center gap-2 border rounded-lg px-4 py-2 transition duration-200 bg-[#ff4d2d] text-white hover:bg-[#e64323] cursor-pointer"
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+        <BrandButton
+          className="w-full mt-2"
           onClick={handleSignIn}
           disabled={loading}
         >
-          {loading ? <ClipLoader size={20} color="white" /> : "Sign In"}
-        </button>
+          {loading ? <ClipLoader size={18} color="white" /> : "Sign In"}
+        </BrandButton>
 
-        {error && <p className="text-red-500 text-center my-2">*{error}</p>}
-
-        <button
-          className="w-full mt-4 flex items-center justify-center gap-2 border rounded-lg px-4 py-2 transition duration-200 border-gray-400 hover:bg-gray-100 cursor-pointer"
+        <BrandButton
+          variant="ghost"
+          className="w-full"
           onClick={handleGoogleAuth}
+          disabled={loading}
         >
           <FcGoogle size={20} />
-          <span>Sign In with Google</span>
-        </button>
-        <p
-          className="text-center mt-6 cursor-pointer"
-          onClick={() => navigate("/signup")}
-        >
-          Want to create a new account?{" "}
-          <span className="text-[#ff4d2d]">Sign Up</span>
+          <span>Continue with Google</span>
+        </BrandButton>
+
+        <p className="text-sm text-center text-(--text-muted) pt-1">
+          New to Vingo?{" "}
+          <button
+            type="button"
+            className="font-semibold text-(--brand-2) hover:opacity-80 cursor-pointer"
+            onClick={() => navigate("/signup")}
+          >
+            Create an account
+          </button>
         </p>
       </div>
-    </div>
+    </AuthShell>
   );
 }
 

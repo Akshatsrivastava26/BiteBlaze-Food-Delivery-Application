@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
-import { serverUrl } from "../App";
+import { serverUrl } from "../config/env";
 import DeliveryBoyTracking from "./DeliveryBoyTracking";
 import {
   Bar,

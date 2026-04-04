@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux'
 import { FaUtensils } from "react-icons/fa";
 import { useState } from 'react';
-import { serverUrl } from '../App';
+import { serverUrl } from '../config/env';
 import axios from 'axios';
 import { setMyShopData } from '../redux/ownerSlice';
 import { useEffect } from 'react';

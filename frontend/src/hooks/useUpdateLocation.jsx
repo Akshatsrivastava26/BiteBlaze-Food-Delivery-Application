@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect } from "react";
 import axios from "axios";
-import { serverUrl } from "../App.jsx";
+import { serverUrl } from "../config/env";
 import { useSelector } from "react-redux";
 
 function useUpdateLocation() {

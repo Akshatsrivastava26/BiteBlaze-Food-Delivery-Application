@@ -1,7 +1,7 @@
 import axios from "axios";
-import  { useEffect } from "react";
+import { useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { serverUrl } from "../App";
+import { serverUrl } from "../config/env";
 import { useState } from "react";
 import { IoIosArrowRoundBack } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
@@ -16,7 +16,7 @@ function TrackOrderPage() {
   const { socket, userData } = useSelector((state) => state.user);
   const currentUser = userData?.user || userData;
   const currentUserId = currentUser?._id;
-  const [liveLocations, setLiveLocations] = useState({}); 
+  const [liveLocations, setLiveLocations] = useState({});
   const handleGetOrder = async () => {
     try {
       const result = await axios.get(
@@ -25,7 +25,11 @@ function TrackOrderPage() {
       );
       const fetchedOrder = result.data?.order;
       const orderUserId = fetchedOrder?.user?._id;
-      if (orderUserId && currentUserId && String(orderUserId) !== String(currentUserId)) {
+      if (
+        orderUserId &&
+        currentUserId &&
+        String(orderUserId) !== String(currentUserId)
+      ) {
         setCurrentOrder(null);
         return;
       }
@@ -39,7 +43,8 @@ function TrackOrderPage() {
     if (!socket) return;
 
     const handleDeliveryLocation = ({ deliveryBoyId, latitude, longitude }) => {
-      const validLocation = Number.isFinite(latitude) && Number.isFinite(longitude);
+      const validLocation =
+        Number.isFinite(latitude) && Number.isFinite(longitude);
       if (!validLocation || !deliveryBoyId) return;
 
       const allowedDeliveryBoyIds =
@@ -48,9 +53,9 @@ function TrackOrderPage() {
           .filter(Boolean) || [];
       if (!allowedDeliveryBoyIds.includes(deliveryBoyId)) return;
 
-      setLiveLocations(prev=>({
+      setLiveLocations((prev) => ({
         ...prev,
-        [deliveryBoyId]:{lat:latitude,lon:longitude},
+        [deliveryBoyId]: { lat: latitude, lon: longitude },
       }));
     };
 
@@ -65,63 +70,73 @@ function TrackOrderPage() {
   }, [orderId, currentUserId]);
 
   return (
-    <div className="max-w-4xl mx-auto p-4 flex flex-col gap-6">
+    <div className="max-w-5xl mx-auto px-3 sm:px-5 py-6 flex flex-col gap-6">
       <div
-        className="relative flex items-center gap-4 top-5 left-5 z-10 mb-2.5"
+        className="relative flex items-center gap-4 z-10"
         onClick={() => navigate("/")}
       >
-        <IoIosArrowRoundBack size={35} className="text-[#ff4d2d]" />
-        <h1 className="text-2xl font-bold md:text-center">Track Order</h1>
+        <IoIosArrowRoundBack size={35} className="text-(--brand-2)" />
+        <h1 className="section-title">Track Order</h1>
       </div>
-      {/* Current Orders will be shown here */}
+
+      {!currentOrder && (
+        <div className="section-card p-6 text-center text-(--text-muted)">
+          Order details are not available right now.
+        </div>
+      )}
+
       {currentOrder?.shopOrders?.map((shopOrder, index) => (
-        <div
-          className="bg-white p-4 rounded-2xl shadow-md border border-orange-100"
-          key={index}
-        >
+        <div className="section-card p-4 sm:p-5" key={index}>
           <div>
-            <p className="text-lg font-bold mb-2 text-[#ff4d2d]">
-              {shopOrder.shopName}
+            <p className="text-lg font-bold mb-2 brand-gradient-text">
+              {shopOrder.shopName || shopOrder?.shop?.name || "Shop"}
             </p>
-            <p className="font-semibold">
+            <p className="font-semibold text-(--text-primary)">
               <span>Items:</span>{" "}
-              {shopOrder.shopOrderItems?.map((i) => i.name).join(", ")}
+              {shopOrder.shopOrderItems?.map((i) => i.name).join(", ") || "-"}
             </p>
-            <p>
+            <p className="text-(--text-secondary)">
               <span className="font-semibold">Subtotal:</span> ₹
-              {shopOrder.subtotal}
+              {shopOrder.subtotal || 0}
             </p>
-            <p className="mt-6">
+            <p className="mt-4 text-(--text-secondary)">
               <span className="font-semibold">Delivery Address:</span>{" "}
-              {currentOrder?.deliveryAddress?.text}
+              {currentOrder?.deliveryAddress?.text || "Not available"}
             </p>
           </div>
-          {/* Details about delivery */}
+
           {shopOrder.status != "delivered" ? (
             <>
               {shopOrder.assignedDeliveryBoy ? (
-                <div className="text-sm text-gray-700">
-                   <p className="font-semibold">
-                    <span className="">Delivery Boy Name:</span>
+                <div className="mt-3 text-sm text-(--text-secondary) section-card p-3">
+                  <p className="font-semibold">
+                    <span>Delivery Boy Name:</span>{" "}
                     {shopOrder.assignedDeliveryBoy.fullName}
                   </p>
                   <p className="font-semibold">
-                    <span className="">Delivery Boy Contact No.:</span>
+                    <span>Delivery Boy Contact No.:</span>{" "}
                     {shopOrder.assignedDeliveryBoy.mobile}
                   </p>
                 </div>
               ) : (
-                <p className="font-semibold">No delivery boy assigned yet.</p>
+                <p className="font-semibold text-(--text-muted) mt-3">
+                  No delivery boy assigned yet.
+                </p>
               )}
             </>
           ) : (
-            <p className="text-green-600 font-semibold text-lg">Delivered</p>
+            <p className="text-green-600 font-semibold text-lg mt-3">
+              Delivered
+            </p>
           )}
-          {/* Map will be shown here */}
-          {(shopOrder.assignedDeliveryBoy && shopOrder.status!="delivered") &&
-            <div className="h-[400px] w-full rounded-2xl overflow-hidden shadow-md">
-              <DeliveryBoyTracking data={{
-                  deliveryBoyLocation: liveLocations[shopOrder.assignedDeliveryBoy._id] || {  
+
+          {shopOrder.assignedDeliveryBoy && shopOrder.status != "delivered" && (
+            <div className="h-[360px] sm:h-[400px] w-full rounded-lg overflow-hidden shadow-(--shadow-sm) mt-4 border border-(--border-soft)">
+              <DeliveryBoyTracking
+                data={{
+                  deliveryBoyLocation: liveLocations[
+                    shopOrder.assignedDeliveryBoy._id
+                  ] || {
                     lat: shopOrder.assignedDeliveryBoy.location.coordinates[1],
                     lon: shopOrder.assignedDeliveryBoy.location.coordinates[0],
                   },
@@ -132,7 +147,7 @@ function TrackOrderPage() {
                 }}
               />
             </div>
-          }
+          )}
         </div>
       ))}
     </div>

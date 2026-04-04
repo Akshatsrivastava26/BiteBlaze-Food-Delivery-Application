@@ -47,10 +47,9 @@ function FoodCard({ data }) {
   };
 
   return (
-    <div className="w-[250px] rounded-2xl border-2 border-[#ff4d2d] bg-white shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col">
-      {/* Image Section */}
-      <div className="relative w-full h-[170px] flex justify-center items-center bg-white">
-        <div className="absolute top-3 right-3 bg-white rounded-full p-1 shadow">
+    <div className="w-[260px] rounded-lg border border-(--border-soft) bg-(--bg-elevated) shadow-(--shadow-sm) overflow-hidden hover:shadow-(--shadow-md) transition-all duration-300 flex flex-col">
+      <div className="relative w-full h-[170px] flex justify-center items-center bg-(--bg-surface)">
+        <div className="absolute top-3 right-3 bg-white/90 rounded-full p-1.5 shadow-(--shadow-sm)">
           {data.foodType == "Veg" ? (
             <FaLeaf className="text-green-600 text-lg" />
           ) : (
@@ -65,42 +64,42 @@ function FoodCard({ data }) {
         />
       </div>
 
-      {/* Details Section */}
       <div className="flex-1 flex flex-col p-4">
-        <h1 className="font-semibold text-gray-900 text-base truncate">
+        <h1 className="font-semibold text-(--text-primary) text-base truncate">
           {data.name}
         </h1>
 
-        {/* Rating Section */}
         <div className="flex items-center gap-1 mt-1">
           {renderStars(data.rating?.average || 0)}
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-(--text-muted)">
             {data.rating?.count || 0}
           </span>
         </div>
       </div>
 
-      {/* price section && Cart Button */}
       <div className="flex items-center justify-between mt-auto p-3">
-        <span className="font-bold text-gray-900 text-lg">₹{data.price}/-</span>
+        <span className="font-bold text-(--text-primary) text-lg">
+          ₹{data.price}
+        </span>
 
-        {/* cart button */}
-        <div className="flex items-center border rounded-full overflow-hidden shadow-sm">
+        <div className="flex items-center border border-(--border-soft) rounded-full overflow-hidden shadow-sm bg-white">
           <button
-            className="px-2 py-1 hover:bg-gray-100 transition"
+            className="px-2 py-1 hover:bg-(--bg-subtle) transition"
             onClick={handleDecrease}
           >
             <FaMinus size={12} />
           </button>
-          <span>{quantity}</span>
+          <span className="min-w-6 text-center text-sm font-semibold">
+            {quantity}
+          </span>
           <button
-            className="px-2 py-1 hover:bg-gray-100 transition"
+            className="px-2 py-1 hover:bg-(--bg-subtle) transition"
             onClick={handleIncrease}
           >
             <FaPlus size={12} />
           </button>
           <button
-            className={`${cartItems.some((i) => i.id == data._id) ? "bg-gray-800" : "bg-[#ff4d2d]"} text-white px-3 py-2 transition-colors`}
+            className={`${cartItems.some((i) => i.id == data._id) ? "bg-(--text-primary)" : "brand-gradient-bg"} text-white px-3 py-2 transition-colors`}
             onClick={() => {
               quantity > 0
                 ? dispatch(

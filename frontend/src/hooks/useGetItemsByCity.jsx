@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect } from "react";
 import axios from "axios";
-import { serverUrl } from "../App.jsx";
+import { serverUrl } from "../config/env";
 import { useDispatch, useSelector } from "react-redux";
 import { setItemsInMyCity } from "../redux/userSlice.js";
 
