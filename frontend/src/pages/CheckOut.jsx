@@ -18,6 +18,7 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { serverUrl } from "../App";
 import { addMyOrder } from "../redux/userSlice";
+import { logger } from "../utils/logger";
 
 function RecenterMap({ location }) {
   const map = useMap();
@@ -49,6 +50,7 @@ function CheckOut() {
     : [28.6139, 77.209];
   const [addressInput, setAddressInput] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const apiKey = import.meta.env.VITE_GEO_API_KEY;
@@ -73,61 +75,77 @@ function CheckOut() {
             result?.data?.results[0].address_line2,
         ),
       );
+      setError("");
     } catch (error) {
-      console.error("Error fetching address:", error);
+      logger.error("Error fetching address", error);
+      setError("Unable to fetch address for this location");
     }
   };
   const getCurrentLocation = () => {
     if (typeof backendLat !== "number" || typeof backendLon !== "number") {
-      alert("Current location is not available yet");
+      setError("Current location is not available yet");
       return;
     }
 
+    setError("");
     dispatch(setLocation({ lat: backendLat, lon: backendLon }));
     getAddressByLatLng(backendLat, backendLon);
   };
   const getLatLngByAddress = async () => {
+    if (addressInput.trim().length < 5) {
+      setError("Please enter a more complete delivery address");
+      return;
+    }
+
     try {
       const result = await axios.get(
         `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(addressInput)}&apiKey=${apiKey}`,
       );
+      if (!result?.data?.features?.length) {
+        setError("Address not found. Please refine your input.");
+        return;
+      }
       const { lat, lon } = result.data.features[0].properties;
       dispatch(setLocation({ lat, lon }));
+      setError("");
     } catch (error) {
-      console.error("Error fetching lat/lng:", error);
+      logger.error("Error fetching lat/lng", error);
+      setError("Unable to locate this address right now");
     }
   };
 
   const handlePlaceOrder = async () => {
+    const validLocation =
+      Number.isFinite(location?.lat) && Number.isFinite(location?.lon);
+    if (!validLocation) {
+      setError("Please select a valid delivery location");
+      return;
+    }
+
+    if (addressInput.trim().length < 5) {
+      setError("Please enter a valid delivery address");
+      return;
+    }
+
+    if (!["cod", "online"].includes(paymentMethod)) {
+      setError("Please select a valid payment method");
+      return;
+    }
+
     // safety check
-    if (!location?.lat || !location?.lon) {
-      alert("Please select delivery location");
-      return;
-    }
-
     if (cartItems.length === 0) {
-      alert("Cart is empty");
+      setError("Cart is empty");
       return;
     }
 
+    setError("");
     try {
-      console.log("ORDER DATA:", {
-        paymentMethod,
-        deliveryAddress: {
-          text: addressInput,
-          latitude: location.lat,
-          longitude: location.lon,
-        },
-        totalAmount: AmountWithDeliveryFee,
-        cartItems,
-      });
-
       const result = await axios.post(
         `${serverUrl}/api/order/place-order`,
         {
           paymentMethod,
           deliveryAddress: {
-            text: addressInput,
+            text: addressInput.trim(),
             latitude: location.lat,
             longitude: location.lon,
           },
@@ -145,11 +163,9 @@ function CheckOut() {
         openRazorpayWindow(orderId, razorOrder);
       }
     } catch (error) {
-      console.error("ORDER ERROR:", error.response?.data || error);
-
-      alert(
-        error.response?.data?.message ||
-          "Something went wrong while placing order",
+      logger.error("Order placement failed", error);
+      setError(
+        error.response?.data?.message || "Something went wrong while placing order",
       );
     }
   };
@@ -175,10 +191,8 @@ function CheckOut() {
           dispatch(addMyOrder(result.data?.order)); // Update Redux store with the new order
           navigate("/order-placed");
         } catch (error) {
-          console.error(
-            "Payment verification failed:",
-            error.response?.data || error,
-          );
+          logger.error("Payment verification failed", error);
+          setError(error?.response?.data?.message || "Payment verification failed");
         }
       },
     };
@@ -342,6 +356,7 @@ function CheckOut() {
         </section>
         {/* Place Order Button */}
         <section className="mt-4">
+          {error && <p className="text-red-500 text-center mb-3">*{error}</p>}
           <button
             className="w-full bg-[#ff4d2d] hover:bg-[#e64526] text-white py-3 rounded-xl font-semibold cursor-pointer"
             onClick={handlePlaceOrder}

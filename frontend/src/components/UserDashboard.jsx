@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import Nav from "./Nav";
 import { categories } from "../category";
 import CategoryCard from "./CategoryCard";
 import { FaCircleChevronLeft } from "react-icons/fa6";
@@ -59,57 +58,6 @@ function UserDashboard() {
 
 
 
-
-  useEffect(() => {
-    if (cateScrollRef.current) {
-      updateButton(
-        cateScrollRef,
-        setShowLeftCateButton,
-        setShowRightCateButton,
-      );
-      updateButton(
-        shopScrollRef,
-        setShowLeftShopButton,
-        setShowRightShopButton,
-      );
-      cateScrollRef.current.addEventListener("scroll", () => {
-        updateButton(
-          cateScrollRef,
-          setShowLeftCateButton,
-          setShowRightCateButton,
-        );
-        updateButton(
-          shopScrollRef,
-          setShowLeftShopButton,
-          setShowRightShopButton,
-        );
-      });
-      shopScrollRef.current.addEventListener("scroll", () => {
-        updateButton(
-          shopScrollRef,
-          setShowLeftShopButton,
-          setShowRightShopButton,
-        );
-      });
-    }
-
-    return () => {
-      cateScrollRef?.current?.removeEventListener("scroll", () => {
-        updateButton(
-          cateScrollRef,
-          setShowLeftCateButton,
-          setShowRightCateButton,
-        );
-      });
-      shopScrollRef?.current?.removeEventListener("scroll", () => {
-        updateButton(
-          shopScrollRef,
-          setShowLeftShopButton,
-          setShowRightShopButton,
-        );
-      });
-    };
-  }, [categories]);
   useEffect(() => {
     const cateElement = cateScrollRef.current;
     const shopElement = shopScrollRef.current;
@@ -165,8 +113,6 @@ function UserDashboard() {
 
   return (
     <div className="w-screen min-h-screen flex flex-col gap-5 items-center bg-[#fff9f6] overflow-y-auto">
-      <Nav />
-
       {searchItems && searchItems.length>0 && 
       <div className="w-full max-w-6xl flex flex-col gap-5 items-start p-5 bg-white shadow-md rounded-2xl mt-4">
         <h1 className="text-gray-900 text-2xl sm:text-3xl font-semibold border-b border-gray-200 pb-2">Search Results</h1>

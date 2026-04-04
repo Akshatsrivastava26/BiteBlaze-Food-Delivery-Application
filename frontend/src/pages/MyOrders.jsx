@@ -6,32 +6,54 @@ import UserOrderCard from "../components/UserOrderCard";
 import OwnerOrderCard from "../components/OwnerOrderCard";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { setMyOrders } from "../redux/userSlice";
-import { updateRealtimeOrderStatus } from "../redux/userSlice";
+import { addMyOrder, updateRealtimeOrderStatus } from "../redux/userSlice";
 
 
 function MyOrders() {
   const { userData, myOrders,socket } = useSelector((state) => state.user);
-  const userRole = userData?.user?.role;
+  const currentUser = userData?.user || userData;
+  const userRole = currentUser?.role;
+  const currentUserId = currentUser?._id;
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   useEffect(() => {
-    socket?.on("newOrder", (data) => {
-      if(data.ShopOrders?.owner._id==userData._id){
-        dispatch(setMyOrders([data,...myOrders]))
+    if (!socket || !currentUserId) return;
+
+    const handleNewOrder = (data) => {
+      const incomingOrderId = data?._id;
+      if (!incomingOrderId || myOrders?.some((order) => order?._id === incomingOrderId)) {
+        return;
       }
-    })
-    socket?.on("update-status",({orderId,shopId,status,userId})=>{
-      if(userId==userData._id){
-        dispatch(updateRealtimeOrderStatus({orderId,shopId,status}))
+
+      const incomingOwnerId =
+        data?.shopOrders?.owner?._id || data?.shopOrders?.[0]?.owner?._id;
+      const incomingUserId = data?.user?._id;
+
+      if (userRole === "owner" && String(incomingOwnerId) !== String(currentUserId)) {
+        return;
       }
-    })
+      if (userRole === "user" && String(incomingUserId) !== String(currentUserId)) {
+        return;
+      }
+
+      dispatch(addMyOrder(data));
+    };
+
+    const handleStatusUpdate = ({ orderId, shopId, status, userId }) => {
+      if (!orderId || !shopId || !status || !userId) return;
+      if (String(userId) !== String(currentUserId)) return;
+      dispatch(updateRealtimeOrderStatus({ orderId, shopId, status }));
+    };
+
+    socket.on("newOrder", handleNewOrder);
+    socket.on("update-status", handleStatusUpdate);
+
     return () => {
-      socket?.off("newOrder");
-      socket?.off("update-status");
-    }
-  },[socket])
+      socket.off("newOrder", handleNewOrder);
+      socket.off("update-status", handleStatusUpdate);
+    };
+  }, [socket, currentUserId, userRole, myOrders, dispatch]);
   return (
     <div className="w-full min-h-screen bg-[#fff9f6] flex justify-center px-4">
       <div className="w-full max-w-[800px] p-4">
