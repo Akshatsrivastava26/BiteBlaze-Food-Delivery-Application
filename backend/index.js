@@ -4,6 +4,9 @@ dotenv.config();
 import connectDb from "./config/db.js";
 import path from "path";
 import cookieParser from "cookie-parser";
+import helmet from "helmet";
+import compression from "compression";
+import rateLimit from "express-rate-limit";
 import authRouter from "./routes/authroutes.js";
 import userRouter from "./routes/userroutes.js";
 import shopRouter from "./routes/shoproutes.js";
@@ -12,27 +15,44 @@ import orderRouter from "./routes/orderroutes.js";
 import http from "http";
 const allowedOrigin = ["http://localhost:5173", "http://localhost:5174"];
 
-
 import cors from "cors";
 import { Server } from "socket.io";
 import { socketHandler } from "./socket.js";
 
-
 const app = express();
 const port = process.env.PORT || 8000;
 const server = http.createServer(app);
+const NODE_ENV = process.env.NODE_ENV;
 
-const io=new Server(server,{
-  cors:{
+const io = new Server(server, {
+  cors: {
     origin: allowedOrigin,
     credentials: true,
-    methods:["POST","GET"],
+    methods: ["POST", "GET"],
   },
-})
+});
 
 app.set("io", io);
 
+if (NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
 
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: NODE_ENV === "production" ? 300 : 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many requests, please try again later." },
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: NODE_ENV === "production" ? 40 : 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many auth attempts, please try again later." },
+});
 
 app.use(
   cors({
@@ -41,19 +61,22 @@ app.use(
   }),
 );
 
+app.use(helmet());
+app.use(compression());
+app.use(globalLimiter);
+
 const __dirname = path.resolve();
 
-app.use(express.json());
+app.use(express.json({ limit: "100kb" }));
+app.use(express.urlencoded({ extended: true, limit: "100kb" }));
 app.use(cookieParser());
-app.use("/api/auth", authRouter);
+app.use("/api/auth", authLimiter, authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/shop", shopRouter);
 app.use("/api/item", itemRouter);
 app.use("/api/order", orderRouter);
 
 socketHandler(io);
-
-const NODE_ENV = process.env.NODE_ENV;
 // make our app ready for deployment
 if (NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));

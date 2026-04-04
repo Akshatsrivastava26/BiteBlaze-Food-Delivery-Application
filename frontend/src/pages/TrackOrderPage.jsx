@@ -7,12 +7,15 @@ import { IoIosArrowRoundBack } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import DeliveryBoyTracking from "../components/DeliveryBoyTracking";
 import { useSelector } from "react-redux";
+import { logger } from "../utils/logger";
 
 function TrackOrderPage() {
   const { orderId } = useParams();
   const [currentOrder, setCurrentOrder] = useState();
   const navigate = useNavigate();
-  const socket = useSelector((state) => state.user.socket);
+  const { socket, userData } = useSelector((state) => state.user);
+  const currentUser = userData?.user || userData;
+  const currentUserId = currentUser?._id;
   const [liveLocations, setLiveLocations] = useState({}); 
   const handleGetOrder = async () => {
     try {
@@ -20,25 +23,46 @@ function TrackOrderPage() {
         `${serverUrl}/api/order/get-order-by-id/${orderId}`,
         { withCredentials: true },
       );
-      setCurrentOrder(result.data.order);
+      const fetchedOrder = result.data?.order;
+      const orderUserId = fetchedOrder?.user?._id;
+      if (orderUserId && currentUserId && String(orderUserId) !== String(currentUserId)) {
+        setCurrentOrder(null);
+        return;
+      }
+      setCurrentOrder(fetchedOrder);
     } catch (error) {
-      console.error("Error fetching order:", error);
+      logger.error("Error fetching order", error);
     }
   };
 
   useEffect(() => {
-    socket.on("updateDeliveryLocation",({deliveryBoyId,latitude,longitude}) => {
+    if (!socket) return;
+
+    const handleDeliveryLocation = ({ deliveryBoyId, latitude, longitude }) => {
+      const validLocation = Number.isFinite(latitude) && Number.isFinite(longitude);
+      if (!validLocation || !deliveryBoyId) return;
+
+      const allowedDeliveryBoyIds =
+        currentOrder?.shopOrders
+          ?.map((shopOrder) => shopOrder?.assignedDeliveryBoy?._id)
+          .filter(Boolean) || [];
+      if (!allowedDeliveryBoyIds.includes(deliveryBoyId)) return;
+
       setLiveLocations(prev=>({
         ...prev,
         [deliveryBoyId]:{lat:latitude,lon:longitude},
-      }))
+      }));
+    };
 
-    })
-  }, [socket]);
+    socket.on("updateDeliveryLocation", handleDeliveryLocation);
+    return () => {
+      socket.off("updateDeliveryLocation", handleDeliveryLocation);
+    };
+  }, [socket, currentOrder]);
 
   useEffect(() => {
     handleGetOrder();
-  }, [orderId]);
+  }, [orderId, currentUserId]);
 
   return (
     <div className="max-w-4xl mx-auto p-4 flex flex-col gap-6">

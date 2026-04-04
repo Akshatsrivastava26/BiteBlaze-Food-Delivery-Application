@@ -12,6 +12,7 @@ import { FaPlus } from "react-icons/fa6";
 import { TbReceipt2 } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
 import { setMyShopData } from "../redux/ownerSlice";
+import { logger } from "../utils/logger";
 
 function Nav() {
   const { userData, currentCity, cartItems, myOrders } =
@@ -54,7 +55,7 @@ function Nav() {
       dispatch(setMyShopData(null));
       navigate("/signin");
     } catch (error) {
-      console.log(error);
+      logger.error("Logout failed", error);
     }
   };
 
@@ -63,7 +64,7 @@ function Nav() {
         const result=await axios.get(`${serverUrl}/api/item/search-items?query=${query}&city=${currentCity}`, {withCredentials:true})
         dispatch(setSearchItems(result.data))
       } catch (error) {
-        console.log(error)
+        logger.error("Search failed", error)
         
       }
     }

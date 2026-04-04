@@ -11,6 +11,8 @@ import { auth } from "../../firebase.js";
 import { ClipLoader } from "react-spinners";
 import { useDispatch } from "react-redux";
 import { setUserData } from "../redux/userSlice.js";
+import { isStrongPassword, isValidEmail } from "../utils/validation";
+import { logger } from "../utils/logger";
 
 function SignIn() {
   const primaryColor = "#ff4d2d";
@@ -26,12 +28,25 @@ function SignIn() {
   const dispatch = useDispatch();
 
   const handleSignIn = async () => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!isValidEmail(normalizedEmail)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+    if (!isStrongPassword(password)) {
+      setError(
+        "Password must be 8+ characters with uppercase, lowercase, and a number",
+      );
+      return;
+    }
+
+    setError("");
     setLoading(true);
     try {
       const result = await axios.post(
         `${serverUrl}/api/auth/signin`,
         {
-          email,
+          email: normalizedEmail,
           password,
         },
         { withCredentials: true },
@@ -58,7 +73,8 @@ function SignIn() {
       );
       dispatch(setUserData({ user: data }));
     } catch (error) {
-      console.log(error);
+      logger.error("Google sign-in failed", error);
+      setError(error?.response?.data?.message || "Google sign-in failed");
     }
   };
   return (
@@ -118,7 +134,7 @@ function SignIn() {
               required
             />
             <button
-              className="absolute right-3 cursor-pointer top: 14px text-gray-500"
+              className="absolute right-3 cursor-pointer top-3.5 text-gray-500"
               onClick={() => setShowPassword((prev) => !prev)}
             >
               {!showPassword ? <FaRegEye /> : <FaRegEyeSlash />}

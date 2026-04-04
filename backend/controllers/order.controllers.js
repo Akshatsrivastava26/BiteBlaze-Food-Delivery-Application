@@ -3,6 +3,7 @@ import Order from "../models/order.model.js";
 import DeliveryAssignment from "../models/deliveryAssignment.model.js";
 import User from "../models/user.model.js";
 import Razorpay from "razorpay";
+import { sendDeliveryOtpMail } from "../utils/mail.js";
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -12,6 +13,17 @@ let instance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
+
+const hasDeliveryOtpAccess = (shopOrder, userId) => {
+  const ownerId = shopOrder?.owner?._id || shopOrder?.owner;
+  const assignedId =
+    shopOrder?.assignedDeliveryBoy?._id || shopOrder?.assignedDeliveryBoy;
+
+  return (
+    String(ownerId) === String(userId) ||
+    (assignedId && String(assignedId) === String(userId))
+  );
+};
 
 export const placeOrder = async (req, res) => {
   try {
@@ -285,6 +297,14 @@ export const updateOrderStatus = async (req, res) => {
     if (!shopOrder) {
       return res.status(400).json({ message: "Shop order not found" });
     }
+
+    const shopOwnerId = shopOrder.owner?._id || shopOrder.owner;
+    if (String(shopOwnerId) !== String(req.userId)) {
+      return res
+        .status(403)
+        .json({ message: "You are not allowed to update this shop order" });
+    }
+
     shopOrder.status = status;
     // deliveryBoy assignment logic
     let deliveryBoysPayload = [];
@@ -559,6 +579,11 @@ export const getCurrentOrder = async (req, res) => {
 export const getOrderById = async (req, res) => {
   try {
     const { orderId } = req.params;
+    const currentUser = await User.findById(req.userId).select("role");
+    if (!currentUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     const order = await Order.findById(orderId)
       .populate("user")
       .populate({
@@ -578,6 +603,32 @@ export const getOrderById = async (req, res) => {
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
+
+    let hasAccess = false;
+    if (currentUser.role === "user") {
+      const orderUserId = order.user?._id || order.user;
+      hasAccess = String(orderUserId) === String(req.userId);
+    } else if (currentUser.role === "owner") {
+      hasAccess = order.shopOrders.some(
+        (shopOrder) =>
+          String(shopOrder.owner?._id || shopOrder.owner) ===
+          String(req.userId),
+      );
+    } else if (currentUser.role === "deliveryBoy") {
+      hasAccess = order.shopOrders.some(
+        (shopOrder) =>
+          String(
+            shopOrder.assignedDeliveryBoy?._id || shopOrder.assignedDeliveryBoy,
+          ) === String(req.userId),
+      );
+    }
+
+    if (!hasAccess) {
+      return res
+        .status(403)
+        .json({ message: "You are not allowed to access this order" });
+    }
+
     return res.status(200).json({ order });
   } catch (error) {
     return res
@@ -591,10 +642,20 @@ export const sendDeliveryOtp = async (req, res) => {
   try {
     const { orderId, shopOrderId } = req.body;
     const order = await Order.findById(orderId).populate("user");
-    const shopOrder = order.shopOrders.id(shopOrderId);
-    if (!order || !shopOrder) {
+    if (!order) {
       return res.status(400).json({ message: "Enter valid order/shopOrderid" });
     }
+    const shopOrder = order.shopOrders.id(shopOrderId);
+    if (!shopOrder) {
+      return res.status(400).json({ message: "Enter valid order/shopOrderid" });
+    }
+
+    if (!hasDeliveryOtpAccess(shopOrder, req.userId)) {
+      return res
+        .status(403)
+        .json({ message: "You are not allowed to send OTP for this order" });
+    }
+
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
     shopOrder.deliveryOtp = otp;
     shopOrder.otpExpires = new Date(Date.now() + 5 * 60 * 1000);
@@ -615,20 +676,36 @@ export const verifyDeliveryOtp = async (req, res) => {
   try {
     const { orderId, shopOrderId, otp } = req.body;
     const order = await Order.findById(orderId).populate("user");
-    const shopOrder = order.shopOrders.id(shopOrderId);
-    if (!order || !shopOrder) {
+    if (!order) {
       return res.status(400).json({ message: "Enter valid order/shopOrderid" });
     }
+    const shopOrder = order.shopOrders.id(shopOrderId);
+    if (!shopOrder) {
+      return res.status(400).json({ message: "Enter valid order/shopOrderid" });
+    }
+
+    if (!hasDeliveryOtpAccess(shopOrder, req.userId)) {
+      return res
+        .status(403)
+        .json({ message: "You are not allowed to verify OTP for this order" });
+    }
+
     if (
+      !shopOrder.deliveryOtp ||
       shopOrder.deliveryOtp !== otp ||
-      shopOrder.otpExpires ||
+      !shopOrder.otpExpires ||
       shopOrder.otpExpires < Date.now()
     ) {
       return res.status(400).json({ message: "Invalid/expired OTP" });
     }
+
     shopOrder.status = "delivered";
     shopOrder.deliveredAt = Date.now();
+    const assignedDeliveryBoy = shopOrder.assignedDeliveryBoy;
+    shopOrder.deliveryOtp = null;
+    shopOrder.otpExpires = null;
     await order.save();
+
     await DeliveryAssignment.deleteOne({
       shopOrderId: shopOrder._id,
       order: order._id,

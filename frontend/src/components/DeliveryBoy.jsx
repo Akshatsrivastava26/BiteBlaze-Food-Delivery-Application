@@ -13,6 +13,7 @@ import {
   YAxis,
 } from "recharts";
 import { ClipLoader } from "react-spinners";
+import { logger } from "../utils/logger";
 
 function DeliveryBoy() {
   const { userData, socket } = useSelector((state) => state.user);
@@ -41,7 +42,8 @@ function DeliveryBoy() {
       });
       setAvailableAssignments(result.data?.assignments || []);
     } catch (error) {
-      console.log("GET ASSIGNMENT ERROR:", error);
+      logger.error("GET ASSIGNMENT ERROR", error);
+      setAssignmentMessage("Unable to fetch assignments right now");
     }
   };
 
@@ -69,7 +71,7 @@ function DeliveryBoy() {
       );
       setTodayDeliveriesStats(result.data?.stats || []);
     } catch (error) {
-      console.log("TODAY DELIVERIES ERROR:", error);
+      logger.error("TODAY DELIVERIES ERROR", error);
     }
   };
 
@@ -111,7 +113,8 @@ function DeliveryBoy() {
       );
       setShowOtpBox(true);
     } catch (error) {
-      console.log("SEND OTP ERROR:", error);
+      logger.error("SEND OTP ERROR", error);
+      setMessage(error?.response?.data?.message || "Could not send OTP");
     } finally {
       setLoading(false);
     }
@@ -132,9 +135,13 @@ function DeliveryBoy() {
         { withCredentials: true },
       );
       setMessage(result.data?.message || "OTP verified");
-      window.location.reload();
+      setShowOtpBox(false);
+      setOtp("");
+      await getCurrentOrder();
+      await handleTodayDeliveries();
     } catch (error) {
-      console.log("VERIFY OTP ERROR:", error);
+      logger.error("VERIFY OTP ERROR", error);
+      setMessage(error?.response?.data?.message || "OTP verification failed");
     }
   };
 
@@ -156,7 +163,7 @@ function DeliveryBoy() {
           });
         },
         (error) => {
-          console.log(error);
+          logger.warn("Location watch error", error);
         },
         {
           enableHighAccuracy: true,

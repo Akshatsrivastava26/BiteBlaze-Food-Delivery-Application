@@ -2,6 +2,26 @@ import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import genToken from "../utils/token.js";
 import { sendOtpMail } from "../utils/mail.js";
+
+const getCookieOptions = () => {
+  const isProd = process.env.NODE_ENV === "production";
+  return {
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    httpOnly: true,
+  };
+};
+
+const sanitizeUser = (userDoc) => {
+  const user = userDoc?.toObject ? userDoc.toObject() : { ...userDoc };
+  delete user.password;
+  delete user.resetOtp;
+  delete user.isOtpVerified;
+  delete user.otpExpires;
+  return user;
+};
+
 export const signUp = async (req, res) => {
   try {
     const { fullName, email, password, mobileNumber, role } = req.body;
@@ -30,13 +50,8 @@ export const signUp = async (req, res) => {
     });
 
     const token = await genToken(user._id);
-    res.cookie("token", token, {
-      secure: false,
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      httpOnly: true,
-    });
-    return res.status(201).json(user);
+    res.cookie("token", token, getCookieOptions());
+    return res.status(201).json(sanitizeUser(user));
   } catch (error) {
     return res.status(500).json(`sign up error ${error}`);
   }
@@ -45,7 +60,7 @@ export const signUp = async (req, res) => {
 export const signIn = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
     if (!user) {
       return res.status(400).json({ message: "User does not exists." });
     }
@@ -55,14 +70,9 @@ export const signIn = async (req, res) => {
     }
 
     const token = await genToken(user._id);
-    res.cookie("token", token, {
-      secure: false,
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      httpOnly: true,
-    });
+    res.cookie("token", token, getCookieOptions());
 
-    return res.status(201).json({ user, token });
+    return res.status(201).json({ user: sanitizeUser(user), token });
   } catch (error) {
     return res.status(500).json(`sign In error ${error}`);
   }
@@ -70,11 +80,9 @@ export const signIn = async (req, res) => {
 
 export const signOut = async (req, res) => {
   try {
-    res.clearCookie("token", {
-      secure: false,
-      sameSite: "strict",
-      httpOnly: true,
-    });
+    const cookieOptions = getCookieOptions();
+    delete cookieOptions.maxAge;
+    res.clearCookie("token", cookieOptions);
     return res.status(200).json({ message: "Signout successful" });
   } catch (error) {
     return res.status(500).json(`sign Out error ${error}`);
@@ -83,7 +91,9 @@ export const signOut = async (req, res) => {
 export const sendOtp = async (req, res) => {
   try {
     const { email } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select(
+      "+resetOtp +otpExpires +isOtpVerified",
+    );
     if (!user) {
       return res.status(400).json({ message: "User does not exists." });
     }
@@ -91,7 +101,7 @@ export const sendOtp = async (req, res) => {
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
     user.resetOtp = otp;
     // 5 minutes from now
-    const otpExpires = Date.now() + 5 * 60 * 1000;
+    user.otpExpires = new Date(Date.now() + 5 * 60 * 1000);
     user.isOtpVerified = false;
     await user.save();
 
@@ -106,13 +116,21 @@ export const sendOtp = async (req, res) => {
 export const verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
-    const user = await User.findOne({ email });
-    if (!user || user.resetOtp !== otp || user.otpExpires < Date.now()) {
+    const user = await User.findOne({ email }).select(
+      "+resetOtp +otpExpires +isOtpVerified",
+    );
+    if (
+      !user ||
+      !user.resetOtp ||
+      user.resetOtp !== otp ||
+      !user.otpExpires ||
+      user.otpExpires < new Date()
+    ) {
       return res.status(400).json({ message: "Invalid or expired Otp." });
     }
     user.isOtpVerified = true;
-    user.resetOtp = undefined;
-    user.otpExpires = undefined;
+    user.resetOtp = null;
+    user.otpExpires = null;
     await user.save();
     return res.status(200).json({ message: "OTP verified successfully." });
   } catch (error) {
@@ -123,7 +141,7 @@ export const verifyOtp = async (req, res) => {
 export const resetPassword = async (req, res) => {
   try {
     const { email, newPassword } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+isOtpVerified");
     if (!user || !user.isOtpVerified) {
       return res.status(400).json({ message: "Otp verification required." });
     }
@@ -151,13 +169,8 @@ export const googleAuth = async (req, res) => {
     }
 
     const token = await genToken(user._id);
-    res.cookie("token", token, {
-      secure: false,
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      httpOnly: true,
-    });
-    return res.status(200).json(user);
+    res.cookie("token", token, getCookieOptions());
+    return res.status(200).json(sanitizeUser(user));
   } catch (error) {
     return res.status(500).json(`google Auth error ${error}`);
   }
