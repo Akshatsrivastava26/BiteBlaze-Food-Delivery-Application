@@ -1,4 +1,4 @@
-// import React, { useRef } from 'react'
+﻿// import React, { useRef } from 'react'
 import * as React from 'react';
 import { IoIosArrowRoundBack } from "react-icons/io";
 import { useNavigate, useParams } from 'react-router-dom';
@@ -89,12 +89,12 @@ function EditItem() {
   return (
     <div className='flex justify-center flex-col items-center p-6 bg-linear-to-br from-orange-50 relative to-white min-h-screen'>
       <div className='absolute top-5 left-5 z-10 mb-2.5' onClick={()=> navigate("/")}>
-        <IoIosArrowRoundBack size={35} className='text-[#ff4d2d]'/>
+        <IoIosArrowRoundBack size={35} className='text-[#7F00FF]'/>
       </div>
       <div className='max-w-lg w-full bg-white shadow-xl rounded-2xl p-8 border border-orange-100'>
         <div className='flex flex-col items-center mb-6'>
             <div className='bg-orange-100 p-4 rounded-full mb-4'>
-                <FaUtensils className='text-[#ff4d2d] w-16 h-16'/>
+                <FaUtensils className='text-[#7F00FF] w-16 h-16'/>
             </div>
             <div className='text-3xl font-extrabold text-gray-900'>
                  Edit Food
@@ -139,7 +139,7 @@ function EditItem() {
                     <option value="Non-Veg">Non-Veg</option>
                 </select>
             </div>
-            <button className='w-full bg-[#ff4d2d] text-white px-6 py-3 rounded-lg font-semibold shadow-md hover:bg-orange-600 hover:shadow-lg transition-all duration-200 cursor-pointer' disabled={loading}>
+            <button className='w-full bg-[#7F00FF] text-white px-6 py-3 rounded-lg font-semibold shadow-md hover:bg-[#6500CC] hover:shadow-lg transition-all duration-200 cursor-pointer' disabled={loading}>
                 {loading? <ClipLoader size={20} color='white'/> : "Save"}
 
             </button>
@@ -151,3 +151,4 @@ function EditItem() {
 }
 
 export default EditItem
+

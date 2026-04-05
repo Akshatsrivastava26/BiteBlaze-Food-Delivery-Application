@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -25,14 +25,14 @@ class ErrorBoundary extends React.Component {
       return (
         <div className="min-h-screen w-full flex items-center justify-center bg-[#fff9f6] p-4">
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 max-w-md w-full text-center">
-            <h1 className="text-2xl font-bold text-[#ff4d2d] mb-2">
+            <h1 className="text-2xl font-bold text-[#7F00FF] mb-2">
               Something went wrong
             </h1>
             <p className="text-gray-600 mb-5">
               An unexpected error occurred. Please refresh the page.
             </p>
             <button
-              className="bg-[#ff4d2d] text-white px-4 py-2 rounded-lg hover:bg-[#e64323] transition-colors cursor-pointer"
+              className="bg-[#7F00FF] text-white px-4 py-2 rounded-lg hover:bg-[#6500CC] transition-colors cursor-pointer"
               onClick={this.handleReload}
             >
               Refresh
@@ -47,3 +47,4 @@ class ErrorBoundary extends React.Component {
 }
 
 export default ErrorBoundary;
+

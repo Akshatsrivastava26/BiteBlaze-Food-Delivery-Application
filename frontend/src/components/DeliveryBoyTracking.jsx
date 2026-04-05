@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import scooter from "../assets/scooter.png";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -103,7 +103,7 @@ function DeliveryBoyTracking({ data }) {
             <Popup>Customer</Popup>
           </Marker>
 
-          <Polyline positions={path} color="#ff2d55" weight={5} />
+          <Polyline positions={path} color="#7F00FF" weight={5} />
         </MapContainer>
       </div>
 
@@ -123,3 +123,4 @@ function DeliveryBoyTracking({ data }) {
 }
 
 export default DeliveryBoyTracking;
+

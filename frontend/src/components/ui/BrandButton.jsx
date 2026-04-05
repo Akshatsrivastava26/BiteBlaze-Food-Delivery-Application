@@ -13,7 +13,7 @@ function BrandButton({
 
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-(--radius-md) text-sm font-semibold transition-all duration-300 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-(--brand-1)/30 ${variantClass} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-semibold transition-all duration-300 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-(--brand-1)/30 ${variantClass} ${className}`}
       {...props}
     >
       {children}

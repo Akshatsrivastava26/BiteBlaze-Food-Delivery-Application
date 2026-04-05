@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { serverUrl } from "../config/env";
@@ -15,8 +15,18 @@ import {
 import { ClipLoader } from "react-spinners";
 import { logger } from "../utils/logger";
 import BrandButton from "./ui/BrandButton";
-import { FaMotorcycle, FaRupeeSign } from "react-icons/fa";
+import { FaMotorcycle, FaPhoneAlt, FaRupeeSign } from "react-icons/fa";
 import { MdOutlineAssignmentTurnedIn } from "react-icons/md";
+
+const formatDuration = (durationMs) => {
+  const totalSeconds = Math.max(0, Math.floor(durationMs / 1000));
+  const minutes = Math.floor(totalSeconds / 60)
+    .toString()
+    .padStart(2, "0");
+  const seconds = (totalSeconds % 60).toString().padStart(2, "0");
+
+  return `${minutes}:${seconds}`;
+};
 
 function DeliveryBoy() {
   const { userData, socket } = useSelector((state) => state.user);
@@ -31,6 +41,8 @@ function DeliveryBoy() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [assignmentMessage, setAssignmentMessage] = useState("");
+  const [isOnShift, setIsOnShift] = useState(true);
+  const [timerNow, setTimerNow] = useState(Date.now());
 
   const ratePerDelivery = 50;
   const totalEarnings = todayDeliveriesStats.reduce(
@@ -40,6 +52,32 @@ function DeliveryBoy() {
   const currentHourDeliveries =
     todayDeliveriesStats?.[todayDeliveriesStats.length - 1]?.count || 0;
   const firstName = currentUser?.fullName?.split(" ")?.[0] || "Partner";
+  const assignmentStartValue =
+    currentOrder?.acceptedAt ||
+    currentOrder?.shopOrder?.acceptedAt ||
+    currentOrder?.shopOrder?.updatedAt ||
+    currentOrder?.shopOrder?.createdAt;
+  const assignmentStartMs = assignmentStartValue
+    ? new Date(assignmentStartValue).getTime()
+    : null;
+  const elapsedMs = assignmentStartMs
+    ? Math.max(0, timerNow - assignmentStartMs)
+    : 0;
+  const slaMs = 45 * 60 * 1000;
+  const remainingMs = Math.max(0, slaMs - elapsedMs);
+
+  const customerMobile =
+    currentOrder?.user?.mobileNumber || currentOrder?.user?.mobile || "";
+  const shopMobile =
+    currentOrder?.shopOrder?.shop?.mobileNumber ||
+    currentOrder?.shopOrder?.shop?.mobile ||
+    "";
+  const destinationLat = currentOrder?.deliveryAddress?.latitude;
+  const destinationLon = currentOrder?.deliveryAddress?.longitude;
+  const mapsUrl =
+    typeof destinationLat === "number" && typeof destinationLon === "number"
+      ? `https://www.google.com/maps/dir/?api=1&destination=${destinationLat},${destinationLon}&travelmode=driving`
+      : "";
 
   const getAssignments = async () => {
     try {
@@ -62,7 +100,7 @@ function DeliveryBoy() {
         },
       );
       setCurrentOrder(result.data || null);
-    } catch (error) {
+    } catch {
       setCurrentOrder(null);
     }
   };
@@ -82,6 +120,11 @@ function DeliveryBoy() {
   };
 
   const acceptOrder = async (assignmentId) => {
+    if (!isOnShift) {
+      setAssignmentMessage("You are offline. Go online to accept orders.");
+      return;
+    }
+
     setAssignmentMessage("");
     try {
       const result = await axios.get(
@@ -152,7 +195,7 @@ function DeliveryBoy() {
   };
 
   useEffect(() => {
-    if (!socket || currentUser?.role !== "deliveryBoy") return;
+    if (!socket || currentUser?.role !== "deliveryBoy" || !isOnShift) return;
 
     let watchId;
     if (navigator.geolocation) {
@@ -178,9 +221,16 @@ function DeliveryBoy() {
     }
 
     return () => {
-      if (watchId) navigator.geolocation.clearWatch(watchId);
+      if (typeof watchId === "number")
+        navigator.geolocation.clearWatch(watchId);
     };
-  }, [socket, currentUser?._id, currentUser?.role]);
+  }, [socket, currentUser?._id, currentUser?.role, isOnShift]);
+
+  useEffect(() => {
+    if (!isOnShift) {
+      setDeliveryBoyLocation(null);
+    }
+  }, [isOnShift]);
 
   useEffect(() => {
     if (!socket || !currentUser?._id) return;
@@ -206,6 +256,16 @@ function DeliveryBoy() {
       await handleTodayDeliveries();
     })();
   }, [currentUser?._id]);
+
+  useEffect(() => {
+    if (!currentOrder) return;
+
+    const intervalId = setInterval(() => {
+      setTimerNow(Date.now());
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [currentOrder]);
 
   return (
     <div className="w-full min-h-[calc(100vh-9rem)] animate-app-fade px-4 sm:px-6 lg:px-10 py-4 sm:py-6">
@@ -237,6 +297,17 @@ function DeliveryBoy() {
                   ? deliveryBoyLocation.lon.toFixed(6)
                   : "-"}
               </p>
+              <button
+                type="button"
+                className={`mt-2 w-full rounded-md px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                  isOnShift
+                    ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                    : "bg-rose-100 text-rose-700 border border-rose-200"
+                }`}
+                onClick={() => setIsOnShift((prev) => !prev)}
+              >
+                Shift: {isOnShift ? "Online" : "Offline"}
+              </button>
             </div>
           </div>
         </section>
@@ -261,7 +332,7 @@ function DeliveryBoy() {
                   formatter={(value) => [value, "orders"]}
                   labelFormatter={(label) => `${label}:00`}
                 />
-                <Bar dataKey="count" fill="#ff2d55" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="count" fill="#7F00FF" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -300,7 +371,7 @@ function DeliveryBoy() {
                         {a?.deliveryAddress?.text || "No address"}
                       </p>
                       <p className="text-xs text-(--text-subtle)">
-                        {a?.items?.length || 0} items | ₹{a?.subtotal || 0}
+                        {a?.items?.length || 0} items | â‚¹{a?.subtotal || 0}
                       </p>
                     </div>
                     <BrandButton onClick={() => acceptOrder(a.assignmentId)}>
@@ -319,9 +390,21 @@ function DeliveryBoy() {
 
         {currentOrder && (
           <section className="section-card p-5 sm:p-6">
-            <h2 className="text-xl font-bold mb-3 text-(--text-primary)">
-              Current Order
-            </h2>
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <h2 className="text-xl font-bold text-(--text-primary)">
+                Current Order
+              </h2>
+              {assignmentStartMs && (
+                <div className="flex items-center gap-2">
+                  <span className="soft-badge">
+                    Elapsed: {formatDuration(elapsedMs)}
+                  </span>
+                  <span className="soft-badge">
+                    SLA left: {formatDuration(remainingMs)}
+                  </span>
+                </div>
+              )}
+            </div>
             <div className="border border-(--border-soft) rounded-lg p-4 mb-3 bg-(--bg-elevated)">
               <p className="font-semibold text-sm text-(--text-primary)">
                 {currentOrder?.shopOrder?.shop?.name || "Shop"}
@@ -330,9 +413,38 @@ function DeliveryBoy() {
                 {currentOrder?.deliveryAddress?.text || "Address unavailable"}
               </p>
               <p className="text-xs text-(--text-subtle)">
-                {currentOrder?.shopOrder?.shopOrderItems?.length || 0} items | ₹
+                {currentOrder?.shopOrder?.shopOrderItems?.length || 0} items | â‚¹
                 {currentOrder?.shopOrder?.subtotal || 0}
               </p>
+            </div>
+
+            <div className="mb-3 flex flex-wrap gap-2">
+              {customerMobile && (
+                <a
+                  className="inline-flex items-center gap-2 rounded-md border border-(--border-soft) bg-white px-3 py-2 text-sm text-(--text-secondary) hover:bg-(--bg-subtle) transition"
+                  href={`tel:${customerMobile}`}
+                >
+                  <FaPhoneAlt /> Call Customer
+                </a>
+              )}
+              {shopMobile && (
+                <a
+                  className="inline-flex items-center gap-2 rounded-md border border-(--border-soft) bg-white px-3 py-2 text-sm text-(--text-secondary) hover:bg-(--bg-subtle) transition"
+                  href={`tel:${shopMobile}`}
+                >
+                  <FaPhoneAlt /> Call Shop
+                </a>
+              )}
+              {mapsUrl && (
+                <a
+                  className="inline-flex items-center gap-2 rounded-md border border-(--border-soft) bg-white px-3 py-2 text-sm text-(--text-secondary) hover:bg-(--bg-subtle) transition"
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open in Maps
+                </a>
+              )}
             </div>
 
             <DeliveryBoyTracking
@@ -391,3 +503,4 @@ function DeliveryBoy() {
 }
 
 export default DeliveryBoy;
+
