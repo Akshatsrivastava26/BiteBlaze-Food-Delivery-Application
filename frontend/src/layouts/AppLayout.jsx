@@ -14,7 +14,7 @@ function AppLayout() {
       <footer className="border-t border-(--border-soft) bg-(--bg-elevated)/75 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-(--text-muted)">
           <p>
-            <span className="font-semibold text-(--text-secondary)">Vingo</span>{" "}
+            <span className="font-semibold text-(--text-secondary)">BiteBlaze</span>{" "}
             • premium delivery experience
           </p>
           <p>Realtime orders • frictionless checkout • city-first discovery</p>

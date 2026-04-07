@@ -114,7 +114,7 @@ function SignUp() {
   return (
     <AuthShell
       title="Create Account"
-      subtitle="Join Vingo and unlock smarter discovery, live delivery tracking, and one-tap reorders."
+      subtitle="Join BiteBlaze and unlock smarter discovery, live delivery tracking, and one-tap reorders."
       sideTitle="Launch your food routine in minutes."
       sideDescription="Whether you are ordering, managing a shop, or handling deliveries, your workspace adapts instantly."
     >

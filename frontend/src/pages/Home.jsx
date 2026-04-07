@@ -11,7 +11,7 @@ function Home() {
     return (
       <div className="w-full min-h-[calc(100vh-9rem)] flex justify-center items-center">
         <div className="section-card px-8 py-7 text-center">
-          <h2 className="text-2xl font-bold brand-gradient-text">Vingo</h2>
+          <h2 className="text-2xl font-bold brand-gradient-text">BiteBlaze</h2>
           <p className="text-(--text-muted) mt-2">Loading your dashboard...</p>
         </div>
       </div>

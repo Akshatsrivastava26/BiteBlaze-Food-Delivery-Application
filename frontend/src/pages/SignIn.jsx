@@ -83,7 +83,7 @@ function SignIn() {
       title="Welcome Back"
       subtitle="Sign in to continue your food journey with smart recommendations and realtime tracking."
       sideTitle="From craving to doorstep, in one smooth flow."
-      sideDescription="Discover local favorites, live-track delivery, and enjoy a checkout built for speed. Vingo keeps your ordering experience effortless on every screen."
+      sideDescription="Discover local favorites, live-track delivery, and enjoy a checkout built for speed. BiteBlaze keeps your ordering experience effortless on every screen."
     >
       <div className="space-y-4">
         <div>
@@ -164,7 +164,7 @@ function SignIn() {
         </BrandButton>
 
         <p className="text-sm text-center text-(--text-muted) pt-1">
-          New to Vingo?{" "}
+          New to BiteBlaze?{" "}
           <button
             type="button"
             className="font-semibold text-(--brand-2) hover:opacity-80 cursor-pointer"

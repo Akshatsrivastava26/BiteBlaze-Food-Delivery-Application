@@ -6,12 +6,12 @@ import { protectedRoutes, publicRoutes } from "./routes/appRoutes";
 import useAppBootstrap from "./hooks/useAppBootstrap";
 import GlassCard from "./components/ui/GlassCard";
 
-function FullPageLoader({ label = "Loading Vingo experience..." }) {
+function FullPageLoader({ label = "Loading BiteBlaze experience..." }) {
   return (
     <div className="w-screen min-h-screen flex justify-center items-center bg-[radial-gradient(1000px_600px_at_20%_-10%,var(--brand-soft),transparent_55%),radial-gradient(900px_500px_at_90%_0%,var(--brand-haze),transparent_45%),var(--bg-canvas)] px-4">
       <GlassCard className="w-full max-w-md px-8 py-10 flex flex-col items-center gap-4">
         <h1 className="text-4xl font-extrabold brand-gradient-text tracking-tight">
-          Vingo
+          BiteBlaze
         </h1>
         <div className="h-1.5 w-44 rounded-full bg-white/70 overflow-hidden">
           <div className="h-full w-1/2 brand-gradient-bg animate-pulse" />

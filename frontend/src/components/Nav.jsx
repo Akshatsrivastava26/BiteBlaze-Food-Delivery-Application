@@ -103,7 +103,7 @@ function Nav() {
         </div>
       )}
       <h1 className="text-3xl font-extrabold m-1 brand-gradient-text whitespace-nowrap tracking-tight">
-        Vingo
+        BiteBlaze
       </h1>
 
       {user?.role == "user" && (

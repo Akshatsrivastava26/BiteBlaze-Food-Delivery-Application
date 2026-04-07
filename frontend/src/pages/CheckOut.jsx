@@ -176,7 +176,7 @@ function CheckOut() {
       key: import.meta.env.VITE_RAZORPAY_KEY_ID,
       amount: razorOrder.amount,
       currency: "INR",
-      name: "Vingo Ltd.",
+      name: "BiteBlaze Ltd.",
       description: "Payment for order",
       order_id: razorOrder.id,
       handler: async function (response) {
