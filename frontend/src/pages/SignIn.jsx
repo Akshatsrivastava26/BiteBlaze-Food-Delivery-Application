@@ -11,7 +11,7 @@ import { auth } from "../../firebase.js";
 import { ClipLoader } from "react-spinners";
 import { useDispatch } from "react-redux";
 import { setUserData } from "../redux/userSlice.js";
-import { isStrongPassword, isValidEmail } from "../utils/validation";
+import { isValidEmail } from "../utils/validation";
 import { logger } from "../utils/logger";
 import AuthShell from "../components/ui/AuthShell";
 import BrandButton from "../components/ui/BrandButton";
@@ -33,7 +33,6 @@ function SignIn() {
       setError("Please enter a valid email address");
       return;
     }
-  
 
     setError("");
     setLoading(true);
